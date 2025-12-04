@@ -31,10 +31,10 @@ export interface AIInsight {
 
 // Scoring system interfaces
 export interface ScoreBreakdown {
-  responseActivity: number; // 响应活跃度 (0-100)
-  memberInteraction: number; // 成员互动率 (0-100)
-  sentimentHealth: number; // 情感健康度 (0-100)
-  topicCoverage: number; // 话题覆盖度 (0-100)
+  avgMessagesPerMember: number; // 人均消息数
+  speakerPenetration: number; // 发言渗透率 (0-100)
+  interactionDensity: number; // 互动密度 (0-100)
+  avgMessagesPerSpeaker: number; // 发言者人均消息数
 }
 
 export interface AnalysisReport {
@@ -75,29 +75,29 @@ export const getScoreLevel = (score: number): { label: string; color: string; bg
 
 // Scoring dimension definitions
 export const scoreDimensions = {
-  responseActivity: {
-    name: '响应活跃度',
-    description: '衡量群聊的消息活跃程度，基于日均消息数与目标值(100条)的比值计算',
-    weight: 0.3,
-    formula: 'min(日均消息数 / 100, 1) × 100',
-  },
-  memberInteraction: {
-    name: '成员互动率',
-    description: '衡量成员的参与广度，计算活跃成员占总成员的比例',
+  avgMessagesPerMember: {
+    name: '人均消息数',
+    description: '总消息数除以群成员总数，反映群组整体活跃度',
     weight: 0.25,
-    formula: '活跃成员数 / 总成员数 × 100',
+    formula: '总消息数 / 群成员总数',
   },
-  sentimentHealth: {
-    name: '情感健康度',
-    description: '衡量群聊的情感氛围，基于正面/负面情感比例计算',
+  speakerPenetration: {
+    name: '发言渗透率',
+    description: '发言人数占群成员总数的比例，反映成员参与广度',
     weight: 0.25,
-    formula: '(正面情感占比 × 100 + 中性情感占比 × 60) / (1 - 负面情感占比 × 0.5)',
+    formula: '(发言人数 / 群成员总数) × 100',
   },
-  topicCoverage: {
-    name: '话题覆盖度',
-    description: '衡量消息在工作时段(9:00-18:00)的分布均匀程度',
-    weight: 0.2,
-    formula: '有消息的工作时段小时数 / 9 × 100',
+  interactionDensity: {
+    name: '互动密度',
+    description: '互动次数与总消息数的比值，反映成员间的互动频率',
+    weight: 0.25,
+    formula: '(互动次数 / 总消息数) × 100',
+  },
+  avgMessagesPerSpeaker: {
+    name: '发言者人均消息数',
+    description: '总消息数除以发言人数，反映发言者的活跃程度',
+    weight: 0.25,
+    formula: '消息总数 / 发言人数',
   },
 };
 
@@ -172,7 +172,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 45,
     createdAt: '2024-01-15',
     latestScore: 87,
-    scoreBreakdown: { responseActivity: 92, memberInteraction: 85, sentimentHealth: 88, topicCoverage: 82 },
+    scoreBreakdown: { avgMessagesPerMember: 3.5, speakerPenetration: 85, interactionDensity: 88, avgMessagesPerSpeaker: 4.8 },
     todayMessages: 156,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
@@ -184,7 +184,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 32,
     createdAt: '2024-02-20',
     latestScore: 72,
-    scoreBreakdown: { responseActivity: 78, memberInteraction: 65, sentimentHealth: 75, topicCoverage: 70 },
+    scoreBreakdown: { avgMessagesPerMember: 2.8, speakerPenetration: 65, interactionDensity: 75, avgMessagesPerSpeaker: 3.9 },
     todayMessages: 89,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
@@ -196,7 +196,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 28,
     createdAt: '2024-03-10',
     latestScore: 45,
-    scoreBreakdown: { responseActivity: 52, memberInteraction: 38, sentimentHealth: 42, topicCoverage: 48 },
+    scoreBreakdown: { avgMessagesPerMember: 8.4, speakerPenetration: 38, interactionDensity: 42, avgMessagesPerSpeaker: 22.0 },
     todayMessages: 234,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'warning',
@@ -208,7 +208,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 18,
     createdAt: '2024-04-05',
     latestScore: 91,
-    scoreBreakdown: { responseActivity: 95, memberInteraction: 88, sentimentHealth: 92, topicCoverage: 89 },
+    scoreBreakdown: { avgMessagesPerMember: 3.7, speakerPenetration: 88, interactionDensity: 92, avgMessagesPerSpeaker: 4.2 },
     todayMessages: 67,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
@@ -220,7 +220,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 15,
     createdAt: '2024-05-18',
     latestScore: 28,
-    scoreBreakdown: { responseActivity: 25, memberInteraction: 22, sentimentHealth: 35, topicCoverage: 30 },
+    scoreBreakdown: { avgMessagesPerMember: 0.8, speakerPenetration: 22, interactionDensity: 35, avgMessagesPerSpeaker: 3.6 },
     todayMessages: 12,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'critical',
@@ -232,7 +232,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 8,
     createdAt: '2024-01-01',
     latestScore: 68,
-    scoreBreakdown: { responseActivity: 55, memberInteraction: 78, sentimentHealth: 72, topicCoverage: 65 },
+    scoreBreakdown: { avgMessagesPerMember: 2.9, speakerPenetration: 78, interactionDensity: 72, avgMessagesPerSpeaker: 3.7 },
     todayMessages: 23,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
@@ -248,20 +248,20 @@ export const generateMockReports = (groupId: string, days: number = 30): Analysi
     const date = new Date();
     date.setDate(date.getDate() - i);
     const dateStr = date.toISOString().split('T')[0];
-    
+
     const baseScore = group.latestScore + (Math.random() - 0.5) * 20;
     const score = Math.max(0, Math.min(100, Math.round(baseScore)));
-    
+
     return {
       id: `${groupId}-${dateStr}`,
       groupId,
       date: dateStr,
       overallScore: score,
       scoreBreakdown: {
-        responseActivity: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
-        memberInteraction: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
-        sentimentHealth: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
-        topicCoverage: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
+        avgMessagesPerMember: Math.max(0.5, Math.min(10, 3 + (Math.random() - 0.5) * 4)),
+        speakerPenetration: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
+        interactionDensity: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
+        avgMessagesPerSpeaker: Math.max(1, Math.min(20, 5 + (Math.random() - 0.5) * 10)),
       },
       messageCount: Math.floor(Math.random() * 200) + 50,
       activeMembers: Math.floor(Math.random() * group.memberCount * 0.8) + Math.floor(group.memberCount * 0.2),

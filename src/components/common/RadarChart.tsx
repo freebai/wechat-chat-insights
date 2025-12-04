@@ -16,10 +16,10 @@ interface RadarChartProps {
 
 export function RadarChart({ data, showTooltips = false }: RadarChartProps) {
   const chartData = [
-    { dimension: '响应活跃度', value: data.responseActivity, fullMark: 100 },
-    { dimension: '成员互动率', value: data.memberInteraction, fullMark: 100 },
-    { dimension: '情感健康度', value: data.sentimentHealth, fullMark: 100 },
-    { dimension: '话题覆盖度', value: data.topicCoverage, fullMark: 100 },
+    { dimension: '人均消息数', value: data.avgMessagesPerMember * 10, fullMark: 100 },
+    { dimension: '发言渗透率', value: data.speakerPenetration, fullMark: 100 },
+    { dimension: '互动密度', value: data.interactionDensity, fullMark: 100 },
+    { dimension: '发言者人均消息数', value: data.avgMessagesPerSpeaker * 5, fullMark: 100 },
   ];
 
   return (
