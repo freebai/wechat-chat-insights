@@ -1,0 +1,138 @@
+import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { FileText, Calendar, TrendingUp, TrendingDown, ExternalLink } from 'lucide-react';
+import { mockChatGroups, generateMockReports, getScoreLevel } from '@/lib/mockData';
+import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+
+export default function Reports() {
+  const [selectedGroup, setSelectedGroup] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<DateRange>(() => {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - 7);
+    return { from, to };
+  });
+
+  const allReports = useMemo(() => {
+    return mockChatGroups.flatMap(group => 
+      generateMockReports(group.id, 30).map(report => ({
+        ...report,
+        groupName: group.name,
+      }))
+    );
+  }, []);
+
+  const filteredReports = useMemo(() => {
+    return allReports
+      .filter(report => {
+        const reportDate = new Date(report.date);
+        const dateMatch = reportDate >= dateRange.from && reportDate <= dateRange.to;
+        const groupMatch = selectedGroup === 'all' || report.groupId === selectedGroup;
+        return dateMatch && groupMatch;
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [allReports, dateRange, selectedGroup]);
+
+  return (
+    <div className="container max-w-7xl mx-auto px-6 py-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold">分析记录</h1>
+          <p className="text-muted-foreground mt-1">查看所有群聊的历史分析报告</p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-4 mb-6">
+        <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="选择群聊" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部群聊</SelectItem>
+            {mockChatGroups.map(group => (
+              <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+      </div>
+
+      {/* Reports List */}
+      <div className="glass-card rounded-xl overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">日期</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">群聊</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">健康分</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">消息数</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">活跃成员</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">摘要</th>
+              <th className="text-right py-4 px-6 text-sm font-medium text-muted-foreground">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredReports.slice(0, 50).map((report, index) => {
+              const level = getScoreLevel(report.overallScore);
+              const prevReport = filteredReports[index + 1];
+              const scoreDiff = prevReport ? report.overallScore - prevReport.overallScore : 0;
+
+              return (
+                <tr key={report.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{report.date}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className="text-sm font-medium">{report.groupName}</span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <span className={cn('font-semibold', level.color)}>{report.overallScore}</span>
+                      {scoreDiff !== 0 && (
+                        <span className={cn(
+                          'flex items-center text-xs',
+                          scoreDiff > 0 ? 'text-primary' : 'text-destructive'
+                        )}>
+                          {scoreDiff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                          {Math.abs(scoreDiff)}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-4 px-6 text-sm">{report.messageCount}</td>
+                  <td className="py-4 px-6 text-sm">{report.activeMembers}</td>
+                  <td className="py-4 px-6">
+                    <p className="text-sm text-muted-foreground truncate max-w-xs">
+                      {report.aiInsight.summary.slice(0, 50)}...
+                    </p>
+                  </td>
+                  <td className="py-4 px-6 text-right">
+                    <Link 
+                      to={`/groups/${report.groupId}`}
+                      className="text-primary hover:text-primary/80 transition-colors"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {filteredReports.length === 0 && (
+          <div className="py-12 text-center text-muted-foreground">
+            <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>暂无分析记录</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
