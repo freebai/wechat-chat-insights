@@ -33,8 +33,9 @@ export interface AIInsight {
 export interface ScoreBreakdown {
   avgMessagesPerMember: number; // 人均消息数
   speakerPenetration: number; // 发言渗透率 (0-100)
-  interactionDensity: number; // 互动密度 (0-100)
   avgMessagesPerSpeaker: number; // 发言者人均消息数
+  coreMemberConcentration: number; // 核心成员集中度 (0-100, 反向评分)
+  messageTimeDistribution: number; // 消息时间分布均匀度 (0-100)
 }
 
 export interface AnalysisReport {
@@ -45,6 +46,14 @@ export interface AnalysisReport {
   scoreBreakdown: ScoreBreakdown;
   messageCount: number;
   activeMembers: number;
+  // 基础指标数据
+  baseMetrics: {
+    totalMessages: number;
+    totalMembers: number;
+    activeSpeakers: number;
+    activeHours: number;
+    top20Percentage: number;
+  };
   aiInsight: AIInsight;
   memberStats: MemberStats[];
   hourlyActivity: HourlyActivity[];
@@ -78,26 +87,32 @@ export const scoreDimensions = {
   avgMessagesPerMember: {
     name: '人均消息数',
     description: '总消息数除以群成员总数，反映群组整体活跃度',
-    weight: 0.25,
+    weight: 0.2,
     formula: '总消息数 / 群成员总数',
   },
   speakerPenetration: {
     name: '发言渗透率',
     description: '发言人数占群成员总数的比例，反映成员参与广度',
-    weight: 0.25,
+    weight: 0.2,
     formula: '(发言人数 / 群成员总数) × 100',
-  },
-  interactionDensity: {
-    name: '互动密度',
-    description: '互动次数与总消息数的比值，反映成员间的互动频率',
-    weight: 0.25,
-    formula: '(互动次数 / 总消息数) × 100',
   },
   avgMessagesPerSpeaker: {
     name: '发言者人均消息数',
     description: '总消息数除以发言人数，反映发言者的活跃程度',
-    weight: 0.25,
+    weight: 0.2,
     formula: '消息总数 / 发言人数',
+  },
+  coreMemberConcentration: {
+    name: '核心成员集中度',
+    description: '衡量消息分布的均衡性，数值越低表示参与越均衡（反向评分）',
+    weight: 0.2,
+    formula: '100 - (Top 20%成员消息数 / 总消息数) × 100',
+  },
+  messageTimeDistribution: {
+    name: '消息时间分布均匀度',
+    description: '消息在时间轴上的分布均匀程度，反映群组持续活跃性',
+    weight: 0.2,
+    formula: '(活跃时段数 / 总时段数) × 100',
   },
 };
 
@@ -172,7 +187,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 45,
     createdAt: '2024-01-15',
     latestScore: 87,
-    scoreBreakdown: { avgMessagesPerMember: 3.5, speakerPenetration: 85, interactionDensity: 88, avgMessagesPerSpeaker: 4.8 },
+    scoreBreakdown: { avgMessagesPerMember: 3.5, speakerPenetration: 85, avgMessagesPerSpeaker: 4.8, coreMemberConcentration: 35, messageTimeDistribution: 78 },
     todayMessages: 156,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
@@ -184,7 +199,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 32,
     createdAt: '2024-02-20',
     latestScore: 72,
-    scoreBreakdown: { avgMessagesPerMember: 2.8, speakerPenetration: 65, interactionDensity: 75, avgMessagesPerSpeaker: 3.9 },
+    scoreBreakdown: { avgMessagesPerMember: 2.8, speakerPenetration: 65, avgMessagesPerSpeaker: 3.9, coreMemberConcentration: 45, messageTimeDistribution: 62 },
     todayMessages: 89,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
@@ -196,7 +211,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 28,
     createdAt: '2024-03-10',
     latestScore: 45,
-    scoreBreakdown: { avgMessagesPerMember: 8.4, speakerPenetration: 38, interactionDensity: 42, avgMessagesPerSpeaker: 22.0 },
+    scoreBreakdown: { avgMessagesPerMember: 8.4, speakerPenetration: 38, avgMessagesPerSpeaker: 22.0, coreMemberConcentration: 65, messageTimeDistribution: 45 },
     todayMessages: 234,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'warning',
@@ -208,7 +223,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 18,
     createdAt: '2024-04-05',
     latestScore: 91,
-    scoreBreakdown: { avgMessagesPerMember: 3.7, speakerPenetration: 88, interactionDensity: 92, avgMessagesPerSpeaker: 4.2 },
+    scoreBreakdown: { avgMessagesPerMember: 3.7, speakerPenetration: 88, avgMessagesPerSpeaker: 4.2, coreMemberConcentration: 28, messageTimeDistribution: 85 },
     todayMessages: 67,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
@@ -220,7 +235,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 15,
     createdAt: '2024-05-18',
     latestScore: 28,
-    scoreBreakdown: { avgMessagesPerMember: 0.8, speakerPenetration: 22, interactionDensity: 35, avgMessagesPerSpeaker: 3.6 },
+    scoreBreakdown: { avgMessagesPerMember: 0.8, speakerPenetration: 22, avgMessagesPerSpeaker: 3.6, coreMemberConcentration: 75, messageTimeDistribution: 25 },
     todayMessages: 12,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'critical',
@@ -232,7 +247,7 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 8,
     createdAt: '2024-01-01',
     latestScore: 68,
-    scoreBreakdown: { avgMessagesPerMember: 2.9, speakerPenetration: 78, interactionDensity: 72, avgMessagesPerSpeaker: 3.7 },
+    scoreBreakdown: { avgMessagesPerMember: 2.9, speakerPenetration: 78, avgMessagesPerSpeaker: 3.7, coreMemberConcentration: 42, messageTimeDistribution: 68 },
     todayMessages: 23,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
@@ -260,11 +275,19 @@ export const generateMockReports = (groupId: string, days: number = 30): Analysi
       scoreBreakdown: {
         avgMessagesPerMember: Math.max(0.5, Math.min(10, 3 + (Math.random() - 0.5) * 4)),
         speakerPenetration: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
-        interactionDensity: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
         avgMessagesPerSpeaker: Math.max(1, Math.min(20, 5 + (Math.random() - 0.5) * 10)),
+        coreMemberConcentration: Math.max(0, Math.min(100, 100 - score + Math.round((Math.random() - 0.5) * 20))),
+        messageTimeDistribution: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
       },
       messageCount: Math.floor(Math.random() * 200) + 50,
       activeMembers: Math.floor(Math.random() * group.memberCount * 0.8) + Math.floor(group.memberCount * 0.2),
+      baseMetrics: {
+        totalMessages: Math.floor(Math.random() * 200) + 50,
+        totalMembers: group.memberCount,
+        activeSpeakers: Math.floor(Math.random() * group.memberCount * 0.8) + Math.floor(group.memberCount * 0.2),
+        activeHours: Math.floor(Math.random() * 8) + 10,
+        top20Percentage: Math.max(30, Math.min(85, 60 + (Math.random() - 0.5) * 40)),
+      },
       aiInsight: {
         ...mockAIInsight,
         summary: `${dateStr} 群聊分析：整体沟通状态${score >= 70 ? '良好' : score >= 50 ? '一般' : '需要关注'}，${score >= 70 ? '团队协作效率较高' : '建议增加互动频率'}。`,

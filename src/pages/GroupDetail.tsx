@@ -11,6 +11,7 @@ import { HourlyHeatmap } from '@/components/HourlyHeatmap';
 import { MemberRanking } from '@/components/MemberRanking';
 import { AIAnalysisPanel } from '@/components/AIAnalysisPanel';
 import { MessageTypeChart } from '@/components/MessageTypeChart';
+import { BaseMetricsDisplay } from '@/components/BaseMetricsDisplay';
 import { cn } from '@/lib/utils';
 
 export default function GroupDetail() {
@@ -115,9 +116,20 @@ export default function GroupDetail() {
         </div>
 
         <div className="glass-card rounded-xl p-6 lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-4">四维评分</h3>
+          <h3 className="text-lg font-semibold mb-4">五维评分</h3>
           <RadarChart data={latestReport.scoreBreakdown} showTooltips />
         </div>
+      </div>
+
+      {/* Base Metrics */}
+      <div className="glass-card rounded-xl p-6 mb-6">
+        <BaseMetricsDisplay
+          totalMessages={latestReport.baseMetrics.totalMessages}
+          totalMembers={latestReport.baseMetrics.totalMembers}
+          activeSpeakers={latestReport.baseMetrics.activeSpeakers}
+          activeHours={latestReport.baseMetrics.activeHours}
+          top20Percentage={latestReport.baseMetrics.top20Percentage}
+        />
       </div>
 
       {/* Charts */}

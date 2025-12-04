@@ -11,16 +11,17 @@ export default function RulesSettings() {
   const { toast } = useToast();
 
   const [weights, setWeights] = useState({
-    avgMessagesPerMember: 25,
-    speakerPenetration: 25,
-    interactionDensity: 25,
-    avgMessagesPerSpeaker: 25,
+    avgMessagesPerMember: 20,
+    speakerPenetration: 20,
+    avgMessagesPerSpeaker: 20,
+    coreMemberConcentration: 20,
+    messageTimeDistribution: 20,
   });
 
   const handleSave = () => {
     toast({
       title: '配置已保存',
-      description: '分析规则配置已更新,将在下次分析时生效',
+      description: '分析规则配置已更新，将在下次分析时生效',
     });
   };
 

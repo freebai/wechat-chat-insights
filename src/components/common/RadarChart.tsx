@@ -18,8 +18,9 @@ export function RadarChart({ data, showTooltips = false }: RadarChartProps) {
   const chartData = [
     { dimension: '人均消息数', value: data.avgMessagesPerMember * 10, fullMark: 100 },
     { dimension: '发言渗透率', value: data.speakerPenetration, fullMark: 100 },
-    { dimension: '互动密度', value: data.interactionDensity, fullMark: 100 },
     { dimension: '发言者人均消息数', value: data.avgMessagesPerSpeaker * 5, fullMark: 100 },
+    { dimension: '核心成员集中度', value: data.coreMemberConcentration, fullMark: 100 },
+    { dimension: '时间分布均匀度', value: data.messageTimeDistribution, fullMark: 100 },
   ];
 
   return (
