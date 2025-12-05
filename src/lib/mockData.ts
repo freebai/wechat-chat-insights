@@ -82,6 +82,18 @@ export const defaultThresholds: ScoreThresholds = {
   microGroupMemberThreshold: 3,
 };
 
+// 群评分参与配置
+export interface GroupScoringConfig {
+  mode: 'all' | 'include' | 'exclude';  // 全部参与 | 仅指定参与 | 排除指定
+  groupIds: string[];                   // 指定的群聊 ID 列表
+}
+
+// 默认群评分配置
+export const defaultGroupScoringConfig: GroupScoringConfig = {
+  mode: 'all',
+  groupIds: [],
+};
+
 // 权重配置
 export const scoreWeights = {
   statistical: {
@@ -136,6 +148,7 @@ export interface ChatGroup {
   lastAnalysisTime: string;
   status: 'healthy' | 'warning' | 'critical';
   riskStatus?: RiskStatus;
+  isExcludedFromScoring?: boolean;  // 是否被排除评分（由配置决定）
 }
 
 // Score level definitions
@@ -378,6 +391,7 @@ export const mockChatGroups: ChatGroup[] = [
     todayMessages: 23,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
+    isExcludedFromScoring: true, // 测试：不参与评分的群
   },
   {
     id: '7',

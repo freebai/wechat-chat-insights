@@ -120,7 +120,14 @@ export default function Groups() {
                 <tr key={group.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                   <td className="py-4 px-6">
                     <div>
-                      <span className="font-medium">{group.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{group.name}</span>
+                        {group.isExcludedFromScoring && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                            不参与评分
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground truncate max-w-xs">{group.description}</p>
                     </div>
                   </td>

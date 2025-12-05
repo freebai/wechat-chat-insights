@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Save, Settings2, Sliders } from 'lucide-react';
+import { Save, Settings2, Sliders, Users, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { scoreDimensions, defaultThresholds, ScoreThresholds } from '@/lib/mockData';
+import { scoreDimensions, defaultThresholds, ScoreThresholds, defaultGroupScoringConfig, GroupScoringConfig, mockChatGroups } from '@/lib/mockData';
 import { InfoTooltip } from '@/components/common/InfoTooltip';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { GroupSelectDialog } from '@/components/GroupSelectDialog';
 
 export default function RulesSettings() {
   const { toast } = useToast();
@@ -25,6 +27,15 @@ export default function RulesSettings() {
     topicRelevanceScore: 28,     // 70% * 40%
     atmosphereScore: 12,         // 30% * 40%
   });
+
+  // 群评分参与配置
+  const [scoringConfig, setScoringConfig] = useState<GroupScoringConfig>(defaultGroupScoringConfig);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // 获取已选群聊的名称列表
+  const selectedGroupNames = scoringConfig.groupIds
+    .map(id => mockChatGroups.find(g => g.id === id)?.name)
+    .filter(Boolean);
 
   const handleSave = () => {
     toast({
@@ -231,7 +242,121 @@ export default function RulesSettings() {
             )}
           </p>
         </div>
+
+        {/* Group Scoring Config */}
+        <div className="glass-card rounded-xl p-6">
+          <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            群评分参与配置
+          </h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            配置哪些群聊参与健康度评分计算
+          </p>
+
+          <RadioGroup
+            value={scoringConfig.mode === 'all' ? 'all' : 'custom'}
+            onValueChange={(value) => {
+              if (value === 'all') {
+                setScoringConfig({ mode: 'all', groupIds: [] });
+              } else {
+                setScoringConfig(prev => ({ ...prev, mode: 'include' }));
+              }
+            }}
+            className="space-y-4"
+          >
+            <div className="flex items-center space-x-3">
+              <RadioGroupItem value="all" id="scoring-all" />
+              <Label htmlFor="scoring-all" className="cursor-pointer">
+                全部群聊参与评分
+              </Label>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem value="custom" id="scoring-custom" />
+                <Label htmlFor="scoring-custom" className="cursor-pointer">
+                  自定义
+                </Label>
+              </div>
+
+              {scoringConfig.mode !== 'all' && (
+                <div className="ml-7 space-y-4 p-4 bg-muted/30 rounded-lg border border-border/50">
+                  {/* 自定义模式子选项 */}
+                  <RadioGroup
+                    value={scoringConfig.mode}
+                    onValueChange={(value: 'include' | 'exclude') => {
+                      setScoringConfig(prev => ({ ...prev, mode: value }));
+                    }}
+                    className="space-y-3"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem value="include" id="mode-include" />
+                      <Label htmlFor="mode-include" className="cursor-pointer text-sm">
+                        仅以下群参与评分
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem value="exclude" id="mode-exclude" />
+                      <Label htmlFor="mode-exclude" className="cursor-pointer text-sm">
+                        以下群不参与评分
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  {/* 选择群聊按钮 */}
+                  <div className="pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDialogOpen(true)}
+                      className="gap-2"
+                    >
+                      <Users className="h-4 w-4" />
+                      选择群聊
+                      {scoringConfig.groupIds.length > 0 && (
+                        <span className="px-1.5 py-0.5 text-xs bg-primary/20 text-primary rounded">
+                          {scoringConfig.groupIds.length}
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* 已选群聊展示 */}
+                  {selectedGroupNames.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {selectedGroupNames.map((name, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 text-xs bg-muted rounded border border-border"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </RadioGroup>
+
+          {/* 提示信息 */}
+          <div className="mt-6 flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+            <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              不参与评分的群聊仍会正常统计基础指标，仅不计入健康度评分排名。
+            </p>
+          </div>
+        </div>
       </div>
+
+      {/* 群选择弹窗 */}
+      <GroupSelectDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        selectedIds={scoringConfig.groupIds}
+        onConfirm={(ids) => setScoringConfig(prev => ({ ...prev, groupIds: ids }))}
+        title={scoringConfig.mode === 'include' ? '选择参与评分的群聊' : '选择不参与评分的群聊'}
+      />
     </div>
   );
 }

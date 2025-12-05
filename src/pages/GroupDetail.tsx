@@ -132,6 +132,16 @@ export default function GroupDetail() {
         </div>
       )}
 
+      {/* Excluded from Scoring Notice */}
+      {group.isExcludedFromScoring && (
+        <div className="mb-6 p-4 rounded-xl flex items-center gap-3 bg-blue-500/10 border border-blue-500/30">
+          <Info className="h-5 w-5 text-blue-400 shrink-0" />
+          <p className="text-sm text-blue-400">
+            此群聊已配置为不参与健康度评分，但基础指标仍正常统计。
+          </p>
+        </div>
+      )}
+
       {/* Score Overview */}
       {(() => {
         const isNewGroup = latestReport.riskStatus?.isNewGroup;
