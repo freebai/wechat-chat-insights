@@ -23,7 +23,7 @@ interface DateRangeFilterProps {
 }
 
 const presets = [
-  { label: '今日', days: 0 },
+  { label: '昨日', days: 1 },
   { label: '近7天', days: 7 },
   { label: '近30天', days: 30 },
 ];

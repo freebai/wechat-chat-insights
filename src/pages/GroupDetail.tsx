@@ -8,6 +8,7 @@ import { RadarChart } from '@/components/common/RadarChart';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
 import { InsufficientDataOverlay } from '@/components/common/InsufficientDataOverlay';
 import { ActivityChart } from '@/components/ActivityChart';
+import { ScoreTrendChart } from '@/components/ScoreTrendChart';
 import { HourlyHeatmap } from '@/components/HourlyHeatmap';
 import { MemberRanking } from '@/components/MemberRanking';
 import { AIAnalysisPanel } from '@/components/AIAnalysisPanel';
@@ -38,6 +39,17 @@ export default function GroupDetail() {
     });
   }, [reports, dateRange]);
 
+  // 趋势数据始终使用近7天（消息趋势和评分趋势）
+  const trendReports = useMemo(() => {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - 7);
+    return reports.filter(report => {
+      const reportDate = new Date(report.date);
+      return reportDate >= from && reportDate <= to;
+    });
+  }, [reports]);
+
   const latestReport = filteredReports[0];
 
   if (!group || !latestReport) {
@@ -49,13 +61,21 @@ export default function GroupDetail() {
   }
 
   const level = getScoreLevel(group.latestScore);
-  const trendData = filteredReports.map(r => ({
+
+  // 消息趋势：始终使用近7天数据
+  const trendData = trendReports.map(r => ({
     date: r.date.slice(5),
     messages: r.messageCount,
   })).reverse();
 
-  const scoreTrend = filteredReports.length > 1
-    ? latestReport.overallScore - filteredReports[filteredReports.length - 1].overallScore
+  // 评分趋势：始终使用近7天数据
+  const scoreTrendData = trendReports.map(r => ({
+    date: r.date.slice(5),
+    score: r.overallScore,
+  })).reverse();
+
+  const scoreTrend = trendReports.length > 1
+    ? trendReports[0].overallScore - trendReports[trendReports.length - 1].overallScore
     : 0;
 
   return (
@@ -139,7 +159,7 @@ export default function GroupDetail() {
                       )}>
                         {scoreTrend >= 0 ? '+' : ''}{scoreTrend} 分
                       </span>
-                      <span className="text-sm text-muted-foreground">vs 期初</span>
+                      <span className="text-sm text-muted-foreground">vs 7天前</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
                       分析周期内共 {filteredReports.length} 次分析
@@ -153,6 +173,8 @@ export default function GroupDetail() {
                     )}
                   </div>
                 </div>
+                {/* 评分趋势图 */}
+                <ScoreTrendChart data={scoreTrendData} />
               </div>
 
               <div className="glass-card rounded-xl p-6 lg:col-span-2">
