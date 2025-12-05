@@ -4,16 +4,15 @@ import { ChevronLeft, Users, Calendar, TrendingUp, TrendingDown, AlertTriangle, 
 import { Button } from '@/components/ui/button';
 import { mockChatGroups, generateMockReports, getScoreLevel, defaultThresholds } from '@/lib/mockData';
 import { ScoreRing } from '@/components/common/ScoreRing';
-import { RadarChart } from '@/components/common/RadarChart';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
 import { InsufficientDataOverlay } from '@/components/common/InsufficientDataOverlay';
-import { ActivityChart } from '@/components/ActivityChart';
 import { ScoreTrendChart } from '@/components/ScoreTrendChart';
 import { HourlyHeatmap } from '@/components/HourlyHeatmap';
 import { MemberRanking } from '@/components/MemberRanking';
 import { AIAnalysisPanel } from '@/components/AIAnalysisPanel';
 import { MessageTypeChart } from '@/components/MessageTypeChart';
-import { BaseMetricsDisplay } from '@/components/BaseMetricsDisplay';
+import { BaseMetricsDisplay, MetricKey } from '@/components/BaseMetricsDisplay';
+import { MetricTrendChart } from '@/components/MetricTrendChart';
 import { cn } from '@/lib/utils';
 
 export default function GroupDetail() {
@@ -27,6 +26,8 @@ export default function GroupDetail() {
     return { from, to };
   });
 
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey>('totalMessages');
+
   const reports = useMemo(() => {
     if (!id) return [];
     return generateMockReports(id, 30);
@@ -39,7 +40,7 @@ export default function GroupDetail() {
     });
   }, [reports, dateRange]);
 
-  // 趋势数据始终使用近7天（消息趋势和评分趋势）
+  // 趋势数据始终使用近7天
   const trendReports = useMemo(() => {
     const to = new Date();
     const from = new Date();
@@ -62,13 +63,18 @@ export default function GroupDetail() {
 
   const level = getScoreLevel(group.latestScore);
 
-  // 消息趋势：始终使用近7天数据
-  const trendData = trendReports.map(r => ({
+  // 指标趋势数据
+  const metricTrendData = trendReports.map(r => ({
     date: r.date.slice(5),
-    messages: r.messageCount,
+    totalMessages: r.baseMetrics.totalMessages,
+    activeSpeakers: r.baseMetrics.activeSpeakers,
+    activeHours: r.baseMetrics.activeHours,
+    top20Percentage: r.baseMetrics.top20Percentage,
+    medianResponseInterval: r.baseMetrics.medianResponseInterval || 0,
+    totalMembers: r.baseMetrics.totalMembers,
   })).reverse();
 
-  // 评分趋势：始终使用近7天数据
+  // 评分趋势数据
   const scoreTrendData = trendReports.map(r => ({
     date: r.date.slice(5),
     score: r.overallScore,
@@ -142,7 +148,7 @@ export default function GroupDetail() {
         </div>
       )}
 
-      {/* Score Overview */}
+      {/* Top Section: Health Score + AI Analysis */}
       {(() => {
         const isNewGroup = latestReport.riskStatus?.isNewGroup;
         const isMicroGroup = latestReport.riskStatus?.isMicroGroup;
@@ -152,6 +158,7 @@ export default function GroupDetail() {
         return (
           <div className="relative mb-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Health Score Card */}
               <div className="glass-card rounded-xl p-6">
                 <h3 className="text-lg font-semibold mb-4">健康评分</h3>
                 <div className="flex items-center gap-6">
@@ -174,7 +181,6 @@ export default function GroupDetail() {
                     <p className="text-sm text-muted-foreground">
                       分析周期内共 {filteredReports.length} 次分析
                     </p>
-                    {/* 风险提示在分数区域 */}
                     {latestReport.riskStatus?.hasConflictRisk && (
                       <p className="text-xs text-destructive flex items-center gap-1">
                         <AlertTriangle className="h-3 w-3" />
@@ -183,13 +189,12 @@ export default function GroupDetail() {
                     )}
                   </div>
                 </div>
-                {/* 评分趋势图 */}
                 <ScoreTrendChart data={scoreTrendData} />
               </div>
 
-              <div className="glass-card rounded-xl p-6 lg:col-span-2">
-                <h3 className="text-lg font-semibold mb-4">六维评分</h3>
-                <RadarChart data={latestReport.scoreBreakdown} showTooltips />
+              {/* AI Analysis Panel - Now at top right */}
+              <div className="lg:col-span-2">
+                <AIAnalysisPanel insight={latestReport.aiInsight} />
               </div>
             </div>
 
@@ -205,7 +210,7 @@ export default function GroupDetail() {
         );
       })()}
 
-      {/* Base Metrics */}
+      {/* Base Metrics with Clickable Cards */}
       <div className="glass-card rounded-xl p-6 mb-6">
         <BaseMetricsDisplay
           totalMessages={latestReport.baseMetrics.totalMessages}
@@ -215,26 +220,23 @@ export default function GroupDetail() {
           totalHours={latestReport.baseMetrics.totalHours}
           top20Percentage={latestReport.baseMetrics.top20Percentage}
           medianResponseInterval={latestReport.baseMetrics.medianResponseInterval}
+          selectedMetric={selectedMetric}
+          onMetricSelect={setSelectedMetric}
         />
       </div>
 
-      {/* Charts */}
+      {/* Metric Trend Chart + Hourly Heatmap */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="lg:col-span-2">
-          <ActivityChart data={trendData} />
+          <MetricTrendChart data={metricTrendData} selectedMetric={selectedMetric} />
         </div>
         <HourlyHeatmap data={latestReport.hourlyActivity} />
       </div>
 
-      {/* Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="space-y-6">
-          <MemberRanking members={latestReport.memberStats} />
-          <MessageTypeChart data={latestReport.messageTypes} />
-        </div>
-        <div className="lg:col-span-2">
-          <AIAnalysisPanel insight={latestReport.aiInsight} />
-        </div>
+      {/* Member Ranking + Message Type */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <MemberRanking members={latestReport.memberStats} />
+        <MessageTypeChart data={latestReport.messageTypes} />
       </div>
     </div>
   );

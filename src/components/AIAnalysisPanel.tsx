@@ -79,7 +79,6 @@ export function AIAnalysisPanel({ insight }: AIAnalysisPanelProps) {
               )}
             >
               {topic.name}
-              <span className="ml-1.5 opacity-60">{topic.count}</span>
             </span>
           ))}
         </div>

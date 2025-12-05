@@ -1,5 +1,8 @@
 import { LucideIcon, MessageSquare, Users, UserCheck, PieChart, Clock, Timer } from 'lucide-react';
 import { InfoTooltip } from './common/InfoTooltip';
+import { cn } from '@/lib/utils';
+
+export type MetricKey = 'totalMessages' | 'activeSpeakers' | 'activeHours' | 'top20Percentage' | 'medianResponseInterval' | 'totalMembers';
 
 interface MetricCardProps {
     title: string;
@@ -8,11 +11,21 @@ interface MetricCardProps {
     icon: LucideIcon;
     description: string;
     color?: string;
+    isSelected?: boolean;
+    onClick?: () => void;
 }
 
-function MetricCard({ title, value, unit, icon: Icon, description, color = 'primary' }: MetricCardProps) {
+function MetricCard({ title, value, unit, icon: Icon, description, color = 'primary', isSelected, onClick }: MetricCardProps) {
     return (
-        <div className="glass-card rounded-xl p-5 hover:border-primary/30 transition-all">
+        <div 
+            className={cn(
+                "glass-card rounded-xl p-5 transition-all cursor-pointer",
+                isSelected 
+                    ? "border-primary/50 bg-primary/5 ring-1 ring-primary/30" 
+                    : "hover:border-primary/30"
+            )}
+            onClick={onClick}
+        >
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
@@ -38,6 +51,8 @@ interface BaseMetricsDisplayProps {
     totalHours?: number;
     top20Percentage: number;
     medianResponseInterval?: number;
+    selectedMetric?: MetricKey;
+    onMetricSelect?: (metric: MetricKey) => void;
 }
 
 export function BaseMetricsDisplay({
@@ -48,6 +63,8 @@ export function BaseMetricsDisplay({
     totalHours = 12,
     top20Percentage,
     medianResponseInterval,
+    selectedMetric,
+    onMetricSelect,
 }: BaseMetricsDisplayProps) {
     // 格式化响应间隔
     const formatResponseInterval = (seconds?: number) => {
@@ -63,7 +80,7 @@ export function BaseMetricsDisplay({
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">基础指标</h3>
-                <span className="text-sm text-muted-foreground">用于计算评分的原始数据</span>
+                <span className="text-sm text-muted-foreground">点击查看对应趋势</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -75,6 +92,8 @@ export function BaseMetricsDisplay({
                     icon={MessageSquare}
                     description="统计周期内群组的消息总量"
                     color="blue"
+                    isSelected={selectedMetric === 'totalMessages'}
+                    onClick={() => onMetricSelect?.('totalMessages')}
                 />
 
                 {/* 群成员总数 */}
@@ -85,6 +104,8 @@ export function BaseMetricsDisplay({
                     icon={Users}
                     description="当前群组的成员数量"
                     color="green"
+                    isSelected={selectedMetric === 'totalMembers'}
+                    onClick={() => onMetricSelect?.('totalMembers')}
                 />
 
                 {/* 发言人数 */}
@@ -95,6 +116,8 @@ export function BaseMetricsDisplay({
                     icon={UserCheck}
                     description="统计周期内至少发送过一条消息的成员数"
                     color="purple"
+                    isSelected={selectedMetric === 'activeSpeakers'}
+                    onClick={() => onMetricSelect?.('activeSpeakers')}
                 />
 
                 {/* 活跃时段数 */}
@@ -105,6 +128,8 @@ export function BaseMetricsDisplay({
                     icon={Clock}
                     description="有消息发送的小时时段数量"
                     color="orange"
+                    isSelected={selectedMetric === 'activeHours'}
+                    onClick={() => onMetricSelect?.('activeHours')}
                 />
 
                 {/* 响应间隔中位数 */}
@@ -115,6 +140,8 @@ export function BaseMetricsDisplay({
                     icon={Timer}
                     description="消息响应时间的中位数（仅计算间隔<20min的消息对）"
                     color="cyan"
+                    isSelected={selectedMetric === 'medianResponseInterval'}
+                    onClick={() => onMetricSelect?.('medianResponseInterval')}
                 />
 
                 {/* Top 20% 成员消息占比 */}
@@ -125,6 +152,8 @@ export function BaseMetricsDisplay({
                     icon={PieChart}
                     description="发言量前20%的成员所贡献的消息占总消息的比例"
                     color="pink"
+                    isSelected={selectedMetric === 'top20Percentage'}
+                    onClick={() => onMetricSelect?.('top20Percentage')}
                 />
             </div>
         </div>
