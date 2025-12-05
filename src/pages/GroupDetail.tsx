@@ -150,7 +150,7 @@ export default function GroupDetail() {
         </div>
       )}
 
-      {/* Top Section: Health Score + AI Analysis + Radar Chart */}
+      {/* Top Section: Health Score + AI Analysis */}
       {(() => {
         const isNewGroup = latestReport.riskStatus?.isNewGroup;
         const isMicroGroup = latestReport.riskStatus?.isMicroGroup;
@@ -158,82 +158,86 @@ export default function GroupDetail() {
         const overlayReason = isNewGroup && isMicroGroup ? 'both' : isNewGroup ? 'cold_start' : 'micro_group';
 
         return (
-          <div className="relative mb-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Health Score Card */}
-              <div className="lg:col-span-3 glass-card rounded-xl p-6">
-                <h3 className="text-lg font-semibold mb-4">健康评分</h3>
-                <div className="flex flex-col items-center gap-4">
-                  <ScoreRing score={latestReport.overallScore} size="lg" />
-                  <div className="space-y-2 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      {scoreTrend >= 0 ? (
-                        <TrendingUp className="h-4 w-4 text-primary" />
-                      ) : (
-                        <TrendingDown className="h-4 w-4 text-destructive" />
-                      )}
-                      <span className={cn(
-                        'text-sm',
-                        scoreTrend >= 0 ? 'text-primary' : 'text-destructive'
-                      )}>
-                        {scoreTrend >= 0 ? '+' : ''}{scoreTrend} 分
-                      </span>
-                      <span className="text-sm text-muted-foreground">vs 7天前</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      分析周期内共 {filteredReports.length} 次分析
-                    </p>
-                    {latestReport.riskStatus?.hasConflictRisk && (
-                      <p className="text-xs text-destructive flex items-center gap-1 justify-center">
-                        <AlertTriangle className="h-3 w-3" />
-                        评分已降权处理
+          <>
+            <div className="relative mb-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Health Score Card */}
+                <div className="lg:col-span-4 glass-card rounded-xl p-5">
+                  <h3 className="text-base font-semibold mb-3">健康评分</h3>
+                  <div className="flex items-start gap-5">
+                    <ScoreRing score={latestReport.overallScore} size="lg" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        {scoreTrend >= 0 ? (
+                          <TrendingUp className="h-4 w-4 text-primary" />
+                        ) : (
+                          <TrendingDown className="h-4 w-4 text-destructive" />
+                        )}
+                        <span className={cn(
+                          'text-sm font-medium',
+                          scoreTrend >= 0 ? 'text-primary' : 'text-destructive'
+                        )}>
+                          {scoreTrend >= 0 ? '+' : ''}{scoreTrend} 分
+                        </span>
+                        <span className="text-xs text-muted-foreground">vs 7天前</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        分析周期内共 {filteredReports.length} 次分析
                       </p>
-                    )}
+                      {latestReport.riskStatus?.hasConflictRisk && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          评分已降权处理
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4">
                   <ScoreTrendChart data={scoreTrendData} />
+                </div>
+
+                {/* AI Analysis Panel */}
+                <div className="lg:col-span-8">
+                  <AIAnalysisPanel insight={latestReport.aiInsight} />
                 </div>
               </div>
 
+              {/* 数据不足蒙层 */}
+              {showOverlay && (
+                <InsufficientDataOverlay
+                  reason={overlayReason}
+                  messageThreshold={defaultThresholds.coldStartMessageThreshold}
+                  memberThreshold={defaultThresholds.microGroupMemberThreshold}
+                />
+              )}
+            </div>
+
+            {/* Second Row: Radar Chart + Base Metrics */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
               {/* Six-Dimension Radar Chart */}
-              <div className="lg:col-span-4 glass-card rounded-xl p-6">
-                <h3 className="text-lg font-semibold mb-2">六维评分</h3>
+              <div className="lg:col-span-4 glass-card rounded-xl p-5">
+                <h3 className="text-base font-semibold mb-2">六维评分</h3>
                 <RadarChart data={latestReport.scoreBreakdown} showTooltips />
               </div>
 
-              {/* AI Analysis Panel */}
-              <div className="lg:col-span-5">
-                <AIAnalysisPanel insight={latestReport.aiInsight} />
+              {/* Base Metrics with Clickable Cards */}
+              <div className="lg:col-span-8 glass-card rounded-xl p-5">
+                <h3 className="text-base font-semibold mb-3">基础指标</h3>
+                <BaseMetricsDisplay
+                  totalMessages={latestReport.baseMetrics.totalMessages}
+                  totalMembers={latestReport.baseMetrics.totalMembers}
+                  activeSpeakers={latestReport.baseMetrics.activeSpeakers}
+                  activeHours={latestReport.baseMetrics.activeHours}
+                  totalHours={latestReport.baseMetrics.totalHours}
+                  top20Percentage={latestReport.baseMetrics.top20Percentage}
+                  medianResponseInterval={latestReport.baseMetrics.medianResponseInterval}
+                  selectedMetric={selectedMetric}
+                  onMetricSelect={setSelectedMetric}
+                />
               </div>
             </div>
-
-            {/* 数据不足蒙层 */}
-            {showOverlay && (
-              <InsufficientDataOverlay
-                reason={overlayReason}
-                messageThreshold={defaultThresholds.coldStartMessageThreshold}
-                memberThreshold={defaultThresholds.microGroupMemberThreshold}
-              />
-            )}
-          </div>
+          </>
         );
       })()}
-
-      {/* Base Metrics with Clickable Cards */}
-      <div className="glass-card rounded-xl p-6 mb-6">
-        <BaseMetricsDisplay
-          totalMessages={latestReport.baseMetrics.totalMessages}
-          totalMembers={latestReport.baseMetrics.totalMembers}
-          activeSpeakers={latestReport.baseMetrics.activeSpeakers}
-          activeHours={latestReport.baseMetrics.activeHours}
-          totalHours={latestReport.baseMetrics.totalHours}
-          top20Percentage={latestReport.baseMetrics.top20Percentage}
-          medianResponseInterval={latestReport.baseMetrics.medianResponseInterval}
-          selectedMetric={selectedMetric}
-          onMetricSelect={setSelectedMetric}
-        />
-      </div>
 
       {/* Metric Trend Chart + Hourly Heatmap */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
