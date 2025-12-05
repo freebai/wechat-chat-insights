@@ -34,7 +34,7 @@ export interface AIInsight {
 export interface StatisticalMetrics {
   speakerPenetration: number;       // A. 发言渗透率 (0-100)
   avgMessagesPerSpeaker: number;    // B. 发言者人均消息数
-  responseSpeedScore: number;       // C. 响应速度分 (0-100, 根据中位数响应间隔计算)
+  responseSpeedScore: number;       // C. 消息间隔分 (0-100, 根据中位数响应间隔计算)
   timeDistributionScore: number;    // D. 时间分布均匀度 (0-100)
 }
 
@@ -49,7 +49,7 @@ export interface ScoreBreakdown {
   // 统计维度
   speakerPenetration: number;       // A. 发言渗透率
   avgMessagesPerSpeaker: number;    // B. 发言者人均消息数
-  responseSpeedScore: number;       // C. 响应速度分
+  responseSpeedScore: number;       // C. 消息间隔分
   timeDistributionScore: number;    // D. 时间分布均匀度
   // 语义维度
   topicRelevanceScore: number;      // E. 话题相关度
@@ -67,7 +67,7 @@ export interface RiskStatus {
 // 阈值配置
 export interface ScoreThresholds {
   avgMessagesPerSpeakerTarget: number;  // 人均深度阈值，默认 20
-  responseSpeedBase: number;            // 响应速度基准(秒)，默认 300
+  responseSpeedBase: number;            // 消息间隔基准(秒)，默认 300
   atmosphereMeltdownThreshold: number;  // 氛围熔断阈值，默认 30
   coldStartMessageThreshold: number;    // 冷启动消息阈值，默认 5
   microGroupMemberThreshold: number;    // 微型群人数阈值，默认 3
@@ -126,7 +126,7 @@ export interface AnalysisReport {
     activeHours: number;
     totalHours: number;
     top20Percentage: number;
-    medianResponseInterval: number;  // 响应间隔中位数(秒)
+    medianResponseInterval: number;  // 消息间隔时间中位数(秒)
   };
   // 风险状态
   riskStatus: RiskStatus;
@@ -178,10 +178,10 @@ export const scoreDimensions = {
     category: 'statistical' as const,
   },
   responseSpeedScore: {
-    name: '响应速度分',
-    description: '消息响应间隔中位数越短，分数越高',
+    name: '消息间隔分',
+    description: '消息间隔时间中位数越短，分数越高',
     weight: 0.20 * 0.6, // 12%
-    formula: '(1 - 响应间隔中位数 / 基准时间) × 100',
+    formula: '(1 - 消息间隔时间中位数 / 基准时间) × 100',
     category: 'statistical' as const,
   },
   timeDistributionScore: {

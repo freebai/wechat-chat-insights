@@ -20,7 +20,7 @@ export function RadarChart({ data, showTooltips = false }: RadarChartProps) {
   const chartData = [
     { dimension: '发言渗透率', value: data.speakerPenetration, fullMark: 100, category: 'statistical' },
     { dimension: '发言者人均消息', value: data.avgMessagesPerSpeaker, fullMark: 100, category: 'statistical' },
-    { dimension: '响应速度', value: data.responseSpeedScore, fullMark: 100, category: 'statistical' },
+    { dimension: '消息间隔', value: data.responseSpeedScore, fullMark: 100, category: 'statistical' },
     { dimension: '时间分布', value: data.timeDistributionScore, fullMark: 100, category: 'statistical' },
     { dimension: '话题相关度', value: data.topicRelevanceScore, fullMark: 100, category: 'semantic' },
     { dimension: '交互氛围', value: data.atmosphereScore, fullMark: 100, category: 'semantic' },

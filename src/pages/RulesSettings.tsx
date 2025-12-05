@@ -94,7 +94,7 @@ export default function RulesSettings() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 消息响应时间上限
-                <InfoTooltip content="群友之间的消息回复间隔超过此时间后，响应速度分降为0。间隔越短，得分越高。" />
+                <InfoTooltip content="群友之间的消息回复间隔超过此时间后，消息间隔分降为0。间隔越短，得分越高。" />
               </Label>
               <div className="flex items-center gap-2">
                 <Input

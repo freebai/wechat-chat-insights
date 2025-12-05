@@ -20,7 +20,7 @@ const metricConfig: Record<MetricKey, { label: string; color: string; unit: stri
   activeSpeakers: { label: '发言人数', color: 'hsl(var(--chart-3))', unit: '人' },
   activeHours: { label: '活跃时段数', color: 'hsl(var(--chart-4))', unit: '小时' },
   top20Percentage: { label: '核心成员消息占比', color: 'hsl(var(--chart-5))', unit: '%' },
-  medianResponseInterval: { label: '响应间隔中位数', color: 'hsl(var(--primary))', unit: '秒' },
+  medianResponseInterval: { label: '消息间隔时间中位数', color: 'hsl(var(--primary))', unit: '秒' },
 };
 
 export function MetricTrendChart({ data, selectedMetric }: MetricTrendChartProps) {

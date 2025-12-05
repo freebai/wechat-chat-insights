@@ -17,11 +17,11 @@ interface MetricCardProps {
 
 function MetricCard({ title, value, unit, icon: Icon, description, color = 'primary', isSelected, onClick }: MetricCardProps) {
     return (
-        <div 
+        <div
             className={cn(
                 "glass-card rounded-xl p-5 transition-all cursor-pointer",
-                isSelected 
-                    ? "border-primary/50 bg-primary/5 ring-1 ring-primary/30" 
+                isSelected
+                    ? "border-primary/50 bg-primary/5 ring-1 ring-primary/30"
                     : "hover:border-primary/30"
             )}
             onClick={onClick}
@@ -132,9 +132,9 @@ export function BaseMetricsDisplay({
                     onClick={() => onMetricSelect?.('activeHours')}
                 />
 
-                {/* 响应间隔中位数 */}
+                {/* 消息间隔时间中位数 */}
                 <MetricCard
-                    title="响应间隔中位数"
+                    title="消息间隔时间中位数"
                     value={responseInterval.value}
                     unit={responseInterval.unit}
                     icon={Timer}
