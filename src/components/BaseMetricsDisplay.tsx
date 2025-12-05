@@ -77,85 +77,78 @@ export function BaseMetricsDisplay({
     const responseInterval = formatResponseInterval(medianResponseInterval);
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">基础指标</h3>
-                <span className="text-sm text-muted-foreground">点击查看对应趋势</span>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* 总消息数 */}
+            <MetricCard
+                title="总消息数"
+                value={totalMessages}
+                unit="条"
+                icon={MessageSquare}
+                description="统计周期内群组的消息总量"
+                color="blue"
+                isSelected={selectedMetric === 'totalMessages'}
+                onClick={() => onMetricSelect?.('totalMessages')}
+            />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* 总消息数 */}
-                <MetricCard
-                    title="总消息数"
-                    value={totalMessages}
-                    unit="条"
-                    icon={MessageSquare}
-                    description="统计周期内群组的消息总量"
-                    color="blue"
-                    isSelected={selectedMetric === 'totalMessages'}
-                    onClick={() => onMetricSelect?.('totalMessages')}
-                />
+            {/* 群成员总数 */}
+            <MetricCard
+                title="群成员总数"
+                value={totalMembers}
+                unit="人"
+                icon={Users}
+                description="当前群组的成员数量"
+                color="green"
+                isSelected={selectedMetric === 'totalMembers'}
+                onClick={() => onMetricSelect?.('totalMembers')}
+            />
 
-                {/* 群成员总数 */}
-                <MetricCard
-                    title="群成员总数"
-                    value={totalMembers}
-                    unit="人"
-                    icon={Users}
-                    description="当前群组的成员数量"
-                    color="green"
-                    isSelected={selectedMetric === 'totalMembers'}
-                    onClick={() => onMetricSelect?.('totalMembers')}
-                />
+            {/* 发言人数 */}
+            <MetricCard
+                title="发言人数"
+                value={activeSpeakers}
+                unit="人"
+                icon={UserCheck}
+                description="统计周期内至少发送过一条消息的成员数"
+                color="purple"
+                isSelected={selectedMetric === 'activeSpeakers'}
+                onClick={() => onMetricSelect?.('activeSpeakers')}
+            />
 
-                {/* 发言人数 */}
-                <MetricCard
-                    title="发言人数"
-                    value={activeSpeakers}
-                    unit="人"
-                    icon={UserCheck}
-                    description="统计周期内至少发送过一条消息的成员数"
-                    color="purple"
-                    isSelected={selectedMetric === 'activeSpeakers'}
-                    onClick={() => onMetricSelect?.('activeSpeakers')}
-                />
+            {/* 活跃时段数 */}
+            <MetricCard
+                title="活跃时段数"
+                value={activeHours}
+                unit="小时"
+                icon={Clock}
+                description="有消息发送的小时时段数量"
+                color="orange"
+                isSelected={selectedMetric === 'activeHours'}
+                onClick={() => onMetricSelect?.('activeHours')}
+            />
 
-                {/* 活跃时段数 */}
-                <MetricCard
-                    title="活跃时段数"
-                    value={activeHours}
-                    unit="小时"
-                    icon={Clock}
-                    description="有消息发送的小时时段数量"
-                    color="orange"
-                    isSelected={selectedMetric === 'activeHours'}
-                    onClick={() => onMetricSelect?.('activeHours')}
-                />
+            {/* 消息间隔时间中位数 */}
+            <MetricCard
+                title="消息间隔时间中位数"
+                value={responseInterval.value}
+                unit={responseInterval.unit}
+                icon={Timer}
+                description="消息响应时间的中位数（仅计算间隔<20min的消息对）"
+                color="cyan"
+                isSelected={selectedMetric === 'medianResponseInterval'}
+                onClick={() => onMetricSelect?.('medianResponseInterval')}
+            />
 
-                {/* 消息间隔时间中位数 */}
-                <MetricCard
-                    title="消息间隔时间中位数"
-                    value={responseInterval.value}
-                    unit={responseInterval.unit}
-                    icon={Timer}
-                    description="消息响应时间的中位数（仅计算间隔<20min的消息对）"
-                    color="cyan"
-                    isSelected={selectedMetric === 'medianResponseInterval'}
-                    onClick={() => onMetricSelect?.('medianResponseInterval')}
-                />
-
-                {/* Top 20% 成员消息占比 */}
-                <MetricCard
-                    title="核心成员消息占比"
-                    value={top20Percentage.toFixed(1)}
-                    unit="%"
-                    icon={PieChart}
-                    description="发言量前20%的成员所贡献的消息占总消息的比例"
-                    color="pink"
-                    isSelected={selectedMetric === 'top20Percentage'}
-                    onClick={() => onMetricSelect?.('top20Percentage')}
-                />
-            </div>
+            {/* Top 20% 成员消息占比 */}
+            <MetricCard
+                title="核心成员消息占比"
+                value={top20Percentage.toFixed(1)}
+                unit="%"
+                icon={PieChart}
+                description="发言量前20%的成员所贡献的消息占总消息的比例"
+                color="pink"
+                isSelected={selectedMetric === 'top20Percentage'}
+                onClick={() => onMetricSelect?.('top20Percentage')}
+            />
         </div>
     );
 }

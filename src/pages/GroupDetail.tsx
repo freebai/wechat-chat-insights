@@ -171,7 +171,7 @@ export default function GroupDetail() {
                 />
 
                 {/* AI Analysis Panel */}
-                <AIAnalysisPanel insight={latestReport.aiInsight} />
+                <AIAnalysisPanel insight={latestReport.aiInsight} date={latestReport.date} />
               </div>
 
               {/* 数据不足蒙层 */}
@@ -188,7 +188,10 @@ export default function GroupDetail() {
 
             {/* Base Metrics - Full Width */}
             <div className="glass-card rounded-xl p-5 mb-6">
-              <h3 className="text-base font-semibold mb-3">基础指标</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">基础指标</h3>
+                <span className="text-sm text-muted-foreground">点击指标查看趋势</span>
+              </div>
               <BaseMetricsDisplay
                 totalMessages={latestReport.baseMetrics.totalMessages}
                 totalMembers={latestReport.baseMetrics.totalMembers}

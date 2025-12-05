@@ -4,9 +4,10 @@ import { Sparkles, TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface AIAnalysisPanelProps {
   insight: AIInsight;
+  date?: string;
 }
 
-export function AIAnalysisPanel({ insight }: AIAnalysisPanelProps) {
+export function AIAnalysisPanel({ insight, date }: AIAnalysisPanelProps) {
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'positive': return 'text-primary';
@@ -31,7 +32,7 @@ export function AIAnalysisPanel({ insight }: AIAnalysisPanelProps) {
         </div>
         <h3 className="text-lg font-semibold">AI 智能分析</h3>
         <span className="px-2 py-0.5 text-xs rounded-full bg-primary/20 text-primary ml-auto">
-          GPT-4 分析
+          {date ? `${date} 分析报告` : 'GPT-4 分析'}
         </span>
       </div>
 
