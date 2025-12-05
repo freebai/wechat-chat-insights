@@ -13,14 +13,14 @@ export function ScoreTrendChart({ data }: ScoreTrendChartProps) {
     const avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
 
     return (
-        <div className="mt-4 pt-4 border-t border-border/50">
-            <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-muted-foreground">评分趋势 (近7天)</span>
+        <div className="mt-3 pt-3 border-t border-border/50">
+            <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-muted-foreground">评分趋势</span>
                 <span className="text-xs text-muted-foreground">
                     均分: <span className="text-foreground font-medium">{avgScore}</span>
                 </span>
             </div>
-            <div className="h-20">
+            <div className="h-16">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                         <XAxis
