@@ -152,12 +152,13 @@ export interface ChatGroup {
 }
 
 // Score level definitions
-export const getScoreLevel = (score: number): { label: string; color: string; bgColor: string } => {
-  if (score >= 90) return { label: '优秀', color: 'text-primary', bgColor: 'bg-primary/20' };
-  if (score >= 70) return { label: '良好', color: 'text-blue-400', bgColor: 'bg-blue-400/20' };
-  if (score >= 50) return { label: '一般', color: 'text-yellow-400', bgColor: 'bg-yellow-400/20' };
-  if (score >= 30) return { label: '较差', color: 'text-orange-400', bgColor: 'bg-orange-400/20' };
-  return { label: '预警', color: 'text-destructive', bgColor: 'bg-destructive/20' };
+// Score level definitions
+export const getScoreLevel = (score: number): { label: string; color: string; bgColor: string; borderColor: string } => {
+  if (score >= 90) return { label: '优秀', color: 'text-primary', bgColor: 'bg-primary/20', borderColor: 'border-primary/30' };
+  if (score >= 70) return { label: '良好', color: 'text-blue-400', bgColor: 'bg-blue-400/20', borderColor: 'border-blue-400/30' };
+  if (score >= 50) return { label: '一般', color: 'text-yellow-400', bgColor: 'bg-yellow-400/20', borderColor: 'border-yellow-400/30' };
+  if (score >= 30) return { label: '较差', color: 'text-orange-400', bgColor: 'bg-orange-400/20', borderColor: 'border-orange-400/30' };
+  return { label: '预警', color: 'text-destructive', bgColor: 'bg-destructive/20', borderColor: 'border-destructive/30' };
 };
 
 // Scoring dimension definitions - v2.0 六维模型
