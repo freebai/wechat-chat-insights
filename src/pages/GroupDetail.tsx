@@ -2,10 +2,11 @@ import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronLeft, Users, Calendar, TrendingUp, TrendingDown, AlertTriangle, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { mockChatGroups, generateMockReports, getScoreLevel } from '@/lib/mockData';
+import { mockChatGroups, generateMockReports, getScoreLevel, defaultThresholds } from '@/lib/mockData';
 import { ScoreRing } from '@/components/common/ScoreRing';
 import { RadarChart } from '@/components/common/RadarChart';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
+import { InsufficientDataOverlay } from '@/components/common/InsufficientDataOverlay';
 import { ActivityChart } from '@/components/ActivityChart';
 import { HourlyHeatmap } from '@/components/HourlyHeatmap';
 import { MemberRanking } from '@/components/MemberRanking';
@@ -112,45 +113,65 @@ export default function GroupDetail() {
       )}
 
       {/* Score Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="glass-card rounded-xl p-6">
-          <h3 className="text-lg font-semibold mb-4">健康评分</h3>
-          <div className="flex items-center gap-6">
-            <ScoreRing score={latestReport.overallScore} size="lg" />
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                {scoreTrend >= 0 ? (
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                ) : (
-                  <TrendingDown className="h-4 w-4 text-destructive" />
-                )}
-                <span className={cn(
-                  'text-sm',
-                  scoreTrend >= 0 ? 'text-primary' : 'text-destructive'
-                )}>
-                  {scoreTrend >= 0 ? '+' : ''}{scoreTrend} 分
-                </span>
-                <span className="text-sm text-muted-foreground">vs 期初</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                分析周期内共 {filteredReports.length} 次分析
-              </p>
-              {/* 风险提示在分数区域 */}
-              {latestReport.riskStatus?.hasConflictRisk && (
-                <p className="text-xs text-destructive flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  评分已降权处理
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
+      {(() => {
+        const isNewGroup = latestReport.riskStatus?.isNewGroup;
+        const isMicroGroup = latestReport.riskStatus?.isMicroGroup;
+        const showOverlay = isNewGroup || isMicroGroup;
+        const overlayReason = isNewGroup && isMicroGroup ? 'both' : isNewGroup ? 'cold_start' : 'micro_group';
 
-        <div className="glass-card rounded-xl p-6 lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-4">六维评分</h3>
-          <RadarChart data={latestReport.scoreBreakdown} showTooltips />
-        </div>
-      </div>
+        return (
+          <div className="relative mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="glass-card rounded-xl p-6">
+                <h3 className="text-lg font-semibold mb-4">健康评分</h3>
+                <div className="flex items-center gap-6">
+                  <ScoreRing score={latestReport.overallScore} size="lg" />
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      {scoreTrend >= 0 ? (
+                        <TrendingUp className="h-4 w-4 text-primary" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-destructive" />
+                      )}
+                      <span className={cn(
+                        'text-sm',
+                        scoreTrend >= 0 ? 'text-primary' : 'text-destructive'
+                      )}>
+                        {scoreTrend >= 0 ? '+' : ''}{scoreTrend} 分
+                      </span>
+                      <span className="text-sm text-muted-foreground">vs 期初</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      分析周期内共 {filteredReports.length} 次分析
+                    </p>
+                    {/* 风险提示在分数区域 */}
+                    {latestReport.riskStatus?.hasConflictRisk && (
+                      <p className="text-xs text-destructive flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        评分已降权处理
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-card rounded-xl p-6 lg:col-span-2">
+                <h3 className="text-lg font-semibold mb-4">六维评分</h3>
+                <RadarChart data={latestReport.scoreBreakdown} showTooltips />
+              </div>
+            </div>
+
+            {/* 数据不足蒙层 */}
+            {showOverlay && (
+              <InsufficientDataOverlay
+                reason={overlayReason}
+                messageThreshold={defaultThresholds.coldStartMessageThreshold}
+                memberThreshold={defaultThresholds.microGroupMemberThreshold}
+              />
+            )}
+          </div>
+        );
+      })()}
 
       {/* Base Metrics */}
       <div className="glass-card rounded-xl p-6 mb-6">

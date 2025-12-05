@@ -137,12 +137,35 @@ export default function Groups() {
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
-                      <span className={cn('font-semibold', level.color)}>{group.latestScore}</span>
-                      <span className={cn('text-xs px-2 py-0.5 rounded', level.bgColor, level.color)}>
-                        {level.label}
-                      </span>
-                    </div>
+                    {(() => {
+                      const isInsufficientData = group.riskStatus?.isNewGroup || group.riskStatus?.isMicroGroup;
+
+                      if (isInsufficientData) {
+                        // 构建 tooltip 内容
+                        const reasons: string[] = [];
+                        if (group.riskStatus?.isNewGroup) reasons.push('消息不足5条');
+                        if (group.riskStatus?.isMicroGroup) reasons.push('成员少于3人');
+                        const tooltipText = reasons.join('，');
+
+                        return (
+                          <div className="flex items-center gap-2" title={tooltipText}>
+                            <span className="font-semibold text-muted-foreground">--</span>
+                            <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                              数据不足
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="flex items-center gap-2">
+                          <span className={cn('font-semibold', level.color)}>{group.latestScore}</span>
+                          <span className={cn('text-xs px-2 py-0.5 rounded', level.bgColor, level.color)}>
+                            {level.label}
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-2 text-sm">
