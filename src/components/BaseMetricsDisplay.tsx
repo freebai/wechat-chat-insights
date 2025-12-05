@@ -124,7 +124,7 @@ export function BaseMetricsDisplay({
                 <MetricCard
                     title="活跃时段数"
                     value={activeHours}
-                    unit={`/${totalHours}小时`}
+                    unit="小时"
                     icon={Clock}
                     description="有消息发送的小时时段数量"
                     color="orange"

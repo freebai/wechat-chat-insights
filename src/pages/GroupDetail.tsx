@@ -4,6 +4,7 @@ import { ChevronLeft, Users, Calendar, TrendingUp, TrendingDown, AlertTriangle, 
 import { Button } from '@/components/ui/button';
 import { mockChatGroups, generateMockReports, getScoreLevel, defaultThresholds } from '@/lib/mockData';
 import { ScoreRing } from '@/components/common/ScoreRing';
+import { RadarChart } from '@/components/common/RadarChart';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
 import { InsufficientDataOverlay } from '@/components/common/InsufficientDataOverlay';
 import { ScoreTrendChart } from '@/components/ScoreTrendChart';
@@ -40,16 +41,17 @@ export default function GroupDetail() {
     });
   }, [reports, dateRange]);
 
-  // 趋势数据始终使用近7天
+  // 趋势数据：最少展示7天，以选择器的结束时间往前推
   const trendReports = useMemo(() => {
-    const to = new Date();
-    const from = new Date();
-    from.setDate(from.getDate() - 7);
+    const daysDiff = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24));
+    const daysToShow = Math.max(7, daysDiff);
+    const from = new Date(dateRange.to);
+    from.setDate(from.getDate() - daysToShow);
     return reports.filter(report => {
       const reportDate = new Date(report.date);
-      return reportDate >= from && reportDate <= to;
+      return reportDate >= from && reportDate <= dateRange.to;
     });
-  }, [reports]);
+  }, [reports, dateRange]);
 
   const latestReport = filteredReports[0];
 
@@ -148,7 +150,7 @@ export default function GroupDetail() {
         </div>
       )}
 
-      {/* Top Section: Health Score + AI Analysis */}
+      {/* Top Section: Health Score + AI Analysis + Radar Chart */}
       {(() => {
         const isNewGroup = latestReport.riskStatus?.isNewGroup;
         const isMicroGroup = latestReport.riskStatus?.isMicroGroup;
@@ -157,14 +159,14 @@ export default function GroupDetail() {
 
         return (
           <div className="relative mb-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Health Score Card */}
-              <div className="glass-card rounded-xl p-6">
+              <div className="lg:col-span-3 glass-card rounded-xl p-6">
                 <h3 className="text-lg font-semibold mb-4">健康评分</h3>
-                <div className="flex items-center gap-6">
+                <div className="flex flex-col items-center gap-4">
                   <ScoreRing score={latestReport.overallScore} size="lg" />
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
+                  <div className="space-y-2 text-center">
+                    <div className="flex items-center justify-center gap-2">
                       {scoreTrend >= 0 ? (
                         <TrendingUp className="h-4 w-4 text-primary" />
                       ) : (
@@ -182,18 +184,26 @@ export default function GroupDetail() {
                       分析周期内共 {filteredReports.length} 次分析
                     </p>
                     {latestReport.riskStatus?.hasConflictRisk && (
-                      <p className="text-xs text-destructive flex items-center gap-1">
+                      <p className="text-xs text-destructive flex items-center gap-1 justify-center">
                         <AlertTriangle className="h-3 w-3" />
                         评分已降权处理
                       </p>
                     )}
                   </div>
                 </div>
-                <ScoreTrendChart data={scoreTrendData} />
+                <div className="mt-4">
+                  <ScoreTrendChart data={scoreTrendData} />
+                </div>
               </div>
 
-              {/* AI Analysis Panel - Now at top right */}
-              <div className="lg:col-span-2">
+              {/* Six-Dimension Radar Chart */}
+              <div className="lg:col-span-4 glass-card rounded-xl p-6">
+                <h3 className="text-lg font-semibold mb-2">六维评分</h3>
+                <RadarChart data={latestReport.scoreBreakdown} showTooltips />
+              </div>
+
+              {/* AI Analysis Panel */}
+              <div className="lg:col-span-5">
                 <AIAnalysisPanel insight={latestReport.aiInsight} />
               </div>
             </div>

@@ -30,7 +30,7 @@ export function MetricTrendChart({ data, selectedMetric }: MetricTrendChartProps
     <div className="glass-card rounded-xl p-6 animate-fade-up" style={{ animationDelay: '200ms' }}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">{config.label}趋势</h3>
-        <span className="text-xs text-muted-foreground">近7天</span>
+        <span className="text-xs text-muted-foreground">近{data.length}天</span>
       </div>
       <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
