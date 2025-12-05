@@ -1,4 +1,4 @@
-import { LucideIcon, MessageSquare, Users, UserCheck, PieChart, Clock } from 'lucide-react';
+import { LucideIcon, MessageSquare, Users, UserCheck, PieChart, Clock, Timer } from 'lucide-react';
 import { InfoTooltip } from './common/InfoTooltip';
 
 interface MetricCardProps {
@@ -37,6 +37,7 @@ interface BaseMetricsDisplayProps {
     activeHours: number;
     totalHours?: number;
     top20Percentage: number;
+    medianResponseInterval?: number;
 }
 
 export function BaseMetricsDisplay({
@@ -44,9 +45,20 @@ export function BaseMetricsDisplay({
     totalMembers,
     activeSpeakers,
     activeHours,
-    totalHours = 24,
+    totalHours = 12,
     top20Percentage,
+    medianResponseInterval,
 }: BaseMetricsDisplayProps) {
+    // 格式化响应间隔
+    const formatResponseInterval = (seconds?: number) => {
+        if (!seconds) return { value: '-', unit: '' };
+        if (seconds < 60) return { value: seconds.toFixed(0), unit: '秒' };
+        if (seconds < 3600) return { value: (seconds / 60).toFixed(1), unit: '分钟' };
+        return { value: (seconds / 3600).toFixed(1), unit: '小时' };
+    };
+
+    const responseInterval = formatResponseInterval(medianResponseInterval);
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -93,6 +105,16 @@ export function BaseMetricsDisplay({
                     icon={Clock}
                     description="有消息发送的小时时段数量"
                     color="orange"
+                />
+
+                {/* 响应间隔中位数 */}
+                <MetricCard
+                    title="响应间隔中位数"
+                    value={responseInterval.value}
+                    unit={responseInterval.unit}
+                    icon={Timer}
+                    description="消息响应时间的中位数（仅计算间隔<20min的消息对）"
+                    color="cyan"
                 />
 
                 {/* Top 20% 成员消息占比 */}

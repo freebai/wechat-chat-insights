@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, Users, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { ChevronLeft, Users, Calendar, TrendingUp, TrendingDown, AlertTriangle, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockChatGroups, generateMockReports, getScoreLevel } from '@/lib/mockData';
 import { ScoreRing } from '@/components/common/ScoreRing';
@@ -87,6 +87,30 @@ export default function GroupDetail() {
         <DateRangeFilter value={dateRange} onChange={setDateRange} />
       </div>
 
+      {/* Risk Alert */}
+      {latestReport.riskStatus?.riskMessage && (
+        <div className={cn(
+          "mb-6 p-4 rounded-xl flex items-center gap-3",
+          latestReport.riskStatus.hasConflictRisk
+            ? "bg-destructive/10 border border-destructive/30"
+            : latestReport.riskStatus.isNewGroup || latestReport.riskStatus.isMicroGroup
+              ? "bg-muted border border-muted-foreground/20"
+              : "bg-yellow-500/10 border border-yellow-500/30"
+        )}>
+          {latestReport.riskStatus.hasConflictRisk ? (
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+          ) : (
+            <Info className="h-5 w-5 text-muted-foreground shrink-0" />
+          )}
+          <p className={cn(
+            "text-sm",
+            latestReport.riskStatus.hasConflictRisk ? "text-destructive" : "text-muted-foreground"
+          )}>
+            {latestReport.riskStatus.riskMessage}
+          </p>
+        </div>
+      )}
+
       {/* Score Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="glass-card rounded-xl p-6">
@@ -111,12 +135,19 @@ export default function GroupDetail() {
               <p className="text-sm text-muted-foreground">
                 分析周期内共 {filteredReports.length} 次分析
               </p>
+              {/* 风险提示在分数区域 */}
+              {latestReport.riskStatus?.hasConflictRisk && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  评分已降权处理
+                </p>
+              )}
             </div>
           </div>
         </div>
 
         <div className="glass-card rounded-xl p-6 lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-4">五维评分</h3>
+          <h3 className="text-lg font-semibold mb-4">六维评分</h3>
           <RadarChart data={latestReport.scoreBreakdown} showTooltips />
         </div>
       </div>
@@ -128,7 +159,9 @@ export default function GroupDetail() {
           totalMembers={latestReport.baseMetrics.totalMembers}
           activeSpeakers={latestReport.baseMetrics.activeSpeakers}
           activeHours={latestReport.baseMetrics.activeHours}
+          totalHours={latestReport.baseMetrics.totalHours}
           top20Percentage={latestReport.baseMetrics.top20Percentage}
+          medianResponseInterval={latestReport.baseMetrics.medianResponseInterval}
         />
       </div>
 

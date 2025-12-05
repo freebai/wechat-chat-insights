@@ -1,10 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Calendar, TrendingUp, TrendingDown, ExternalLink } from 'lucide-react';
+import { FileText, Calendar, TrendingUp, TrendingDown, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { mockChatGroups, generateMockReports, getScoreLevel } from '@/lib/mockData';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+
+const PAGE_SIZE = 10;
 
 export default function Reports() {
   const [selectedGroup, setSelectedGroup] = useState<string>('all');
@@ -14,9 +17,10 @@ export default function Reports() {
     from.setDate(from.getDate() - 7);
     return { from, to };
   });
+  const [currentPage, setCurrentPage] = useState(1);
 
   const allReports = useMemo(() => {
-    return mockChatGroups.flatMap(group => 
+    return mockChatGroups.flatMap(group =>
       generateMockReports(group.id, 30).map(report => ({
         ...report,
         groupName: group.name,
@@ -35,6 +39,24 @@ export default function Reports() {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [allReports, dateRange, selectedGroup]);
 
+  // 分页逻辑
+  const totalPages = Math.ceil(filteredReports.length / PAGE_SIZE);
+  const paginatedReports = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredReports.slice(start, start + PAGE_SIZE);
+  }, [filteredReports, currentPage]);
+
+  // 筛选变化时重置页码
+  const handleGroupChange = (value: string) => {
+    setSelectedGroup(value);
+    setCurrentPage(1);
+  };
+
+  const handleDateRangeChange = (value: DateRange) => {
+    setDateRange(value);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="container max-w-7xl mx-auto px-6 py-8">
       {/* Header */}
@@ -47,7 +69,7 @@ export default function Reports() {
 
       {/* Filters */}
       <div className="flex items-center gap-4 mb-6">
-        <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+        <Select value={selectedGroup} onValueChange={handleGroupChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="选择群聊" />
           </SelectTrigger>
@@ -58,7 +80,7 @@ export default function Reports() {
             ))}
           </SelectContent>
         </Select>
-        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
       </div>
 
       {/* Reports List */}
@@ -76,9 +98,10 @@ export default function Reports() {
             </tr>
           </thead>
           <tbody>
-            {filteredReports.slice(0, 50).map((report, index) => {
+            {paginatedReports.map((report, index) => {
               const level = getScoreLevel(report.overallScore);
-              const prevReport = filteredReports[index + 1];
+              const globalIndex = (currentPage - 1) * PAGE_SIZE + index;
+              const prevReport = filteredReports[globalIndex + 1];
               const scoreDiff = prevReport ? report.overallScore - prevReport.overallScore : 0;
 
               return (
@@ -114,7 +137,7 @@ export default function Reports() {
                     </p>
                   </td>
                   <td className="py-4 px-6 text-right">
-                    <Link 
+                    <Link
                       to={`/groups/${report.groupId}`}
                       className="text-primary hover:text-primary/80 transition-colors"
                     >
@@ -126,10 +149,41 @@ export default function Reports() {
             })}
           </tbody>
         </table>
+
+        {/* Empty State */}
         {filteredReports.length === 0 && (
           <div className="py-12 text-center text-muted-foreground">
             <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>暂无分析记录</p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+            <span className="text-sm text-muted-foreground">
+              共 {filteredReports.length} 条记录，第 {currentPage} / {totalPages} 页
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                上一页
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                下一页
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
       </div>

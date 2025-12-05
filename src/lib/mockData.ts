@@ -29,14 +29,74 @@ export interface AIInsight {
   keyHighlights: string[];
 }
 
-// Scoring system interfaces
-export interface ScoreBreakdown {
-  avgMessagesPerMember: number; // 人均消息数
-  speakerPenetration: number; // 发言渗透率 (0-100)
-  avgMessagesPerSpeaker: number; // 发言者人均消息数
-  coreMemberConcentration: number; // 核心成员集中度 (0-100, 反向评分)
-  messageTimeDistribution: number; // 消息时间分布均匀度 (0-100)
+// Scoring system interfaces - v2.0 混合模型
+// 统计类指标 (60% 权重)
+export interface StatisticalMetrics {
+  speakerPenetration: number;       // A. 发言渗透率 (0-100)
+  avgMessagesPerSpeaker: number;    // B. 发言者人均消息数
+  responseSpeedScore: number;       // C. 响应速度分 (0-100, 根据中位数响应间隔计算)
+  timeDistributionScore: number;    // D. 时间分布均匀度 (0-100)
 }
+
+// 语义类指标 (40% 权重)
+export interface SemanticMetrics {
+  topicRelevanceScore: number;      // E. 话题相关度 (0-100)
+  atmosphereScore: number;          // F. 交互氛围分 (0-100)
+}
+
+// 综合评分分解 (六维)
+export interface ScoreBreakdown {
+  // 统计维度
+  speakerPenetration: number;       // A. 发言渗透率
+  avgMessagesPerSpeaker: number;    // B. 发言者人均消息数
+  responseSpeedScore: number;       // C. 响应速度分
+  timeDistributionScore: number;    // D. 时间分布均匀度
+  // 语义维度
+  topicRelevanceScore: number;      // E. 话题相关度
+  atmosphereScore: number;          // F. 交互氛围分
+}
+
+// 风险状态
+export interface RiskStatus {
+  isNewGroup: boolean;              // 冷启动标记 (消息数 < 5)
+  isMicroGroup: boolean;            // 微型群标记 (成员 < 3)
+  hasConflictRisk: boolean;         // 负分熔断触发 (氛围分 < 30)
+  riskMessage?: string;
+}
+
+// 阈值配置
+export interface ScoreThresholds {
+  avgMessagesPerSpeakerTarget: number;  // 人均深度阈值，默认 20
+  responseSpeedBase: number;            // 响应速度基准(秒)，默认 300
+  atmosphereMeltdownThreshold: number;  // 氛围熔断阈值，默认 30
+  coldStartMessageThreshold: number;    // 冷启动消息阈值，默认 5
+  microGroupMemberThreshold: number;    // 微型群人数阈值，默认 3
+}
+
+// 默认阈值配置
+export const defaultThresholds: ScoreThresholds = {
+  avgMessagesPerSpeakerTarget: 20,
+  responseSpeedBase: 300,
+  atmosphereMeltdownThreshold: 30,
+  coldStartMessageThreshold: 5,
+  microGroupMemberThreshold: 3,
+};
+
+// 权重配置
+export const scoreWeights = {
+  statistical: {
+    overall: 0.6,
+    speakerPenetration: 0.35,
+    avgMessagesPerSpeaker: 0.25,
+    responseSpeedScore: 0.20,
+    timeDistributionScore: 0.20,
+  },
+  semantic: {
+    overall: 0.4,
+    topicRelevanceScore: 0.70,
+    atmosphereScore: 0.30,
+  },
+};
 
 export interface AnalysisReport {
   id: string;
@@ -52,8 +112,12 @@ export interface AnalysisReport {
     totalMembers: number;
     activeSpeakers: number;
     activeHours: number;
+    totalHours: number;
     top20Percentage: number;
+    medianResponseInterval: number;  // 响应间隔中位数(秒)
   };
+  // 风险状态
+  riskStatus: RiskStatus;
   aiInsight: AIInsight;
   memberStats: MemberStats[];
   hourlyActivity: HourlyActivity[];
@@ -71,6 +135,7 @@ export interface ChatGroup {
   todayMessages: number;
   lastAnalysisTime: string;
   status: 'healthy' | 'warning' | 'critical';
+  riskStatus?: RiskStatus;
 }
 
 // Score level definitions
@@ -82,37 +147,51 @@ export const getScoreLevel = (score: number): { label: string; color: string; bg
   return { label: '预警', color: 'text-destructive', bgColor: 'bg-destructive/20' };
 };
 
-// Scoring dimension definitions
+// Scoring dimension definitions - v2.0 六维模型
 export const scoreDimensions = {
-  avgMessagesPerMember: {
-    name: '人均消息数',
-    description: '总消息数除以群成员总数，反映群组整体活跃度',
-    weight: 0.2,
-    formula: '总消息数 / 群成员总数',
-  },
+  // 统计类指标 (60%)
   speakerPenetration: {
     name: '发言渗透率',
     description: '发言人数占群成员总数的比例，反映成员参与广度',
-    weight: 0.2,
+    weight: 0.35 * 0.6, // 21%
     formula: '(发言人数 / 群成员总数) × 100',
+    category: 'statistical' as const,
   },
   avgMessagesPerSpeaker: {
-    name: '发言者人均消息数',
+    name: '发言者人均消息',
     description: '总消息数除以发言人数，反映发言者的活跃程度',
-    weight: 0.2,
-    formula: '消息总数 / 发言人数',
+    weight: 0.25 * 0.6, // 15%
+    formula: 'min(消息总数 / 发言人数 / 阈值, 1) × 100',
+    category: 'statistical' as const,
   },
-  coreMemberConcentration: {
-    name: '核心成员集中度',
-    description: '衡量消息分布的均衡性，数值越低表示参与越均衡（反向评分）',
-    weight: 0.2,
-    formula: '100 - (Top 20%成员消息数 / 总消息数) × 100',
+  responseSpeedScore: {
+    name: '响应速度分',
+    description: '消息响应间隔中位数越短，分数越高',
+    weight: 0.20 * 0.6, // 12%
+    formula: '(1 - 响应间隔中位数 / 基准时间) × 100',
+    category: 'statistical' as const,
   },
-  messageTimeDistribution: {
-    name: '消息时间分布均匀度',
+  timeDistributionScore: {
+    name: '时间分布均匀度',
     description: '消息在时间轴上的分布均匀程度，反映群组持续活跃性',
-    weight: 0.2,
-    formula: '(活跃时段数 / 总时段数) × 100',
+    weight: 0.20 * 0.6, // 12%
+    formula: '(活跃时段数 / 运营时段数) × 100',
+    category: 'statistical' as const,
+  },
+  // 语义类指标 (40%)
+  topicRelevanceScore: {
+    name: '话题相关度',
+    description: '消息内容与业务/产品的相关性，由 LLM 分析',
+    weight: 0.70 * 0.4, // 28%
+    formula: 'LLM 分析：业务探讨100分，闲聊/广告0分',
+    category: 'semantic' as const,
+  },
+  atmosphereScore: {
+    name: '交互氛围分',
+    description: '群内情绪极性与冲突程度，由 LLM 分析',
+    weight: 0.30 * 0.4, // 12%
+    formula: 'LLM 分析：和谐互助100分，攻击辱骂0-40分',
+    category: 'semantic' as const,
   },
 };
 
@@ -178,7 +257,7 @@ export const mockMessageTypes = [
   { type: '链接', count: 554, percentage: 4.4 },
 ];
 
-// Mock chat groups
+// Mock chat groups - v2.0 六维评分
 export const mockChatGroups: ChatGroup[] = [
   {
     id: '1',
@@ -187,7 +266,14 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 45,
     createdAt: '2024-01-15',
     latestScore: 87,
-    scoreBreakdown: { avgMessagesPerMember: 3.5, speakerPenetration: 85, avgMessagesPerSpeaker: 4.8, coreMemberConcentration: 35, messageTimeDistribution: 78 },
+    scoreBreakdown: {
+      speakerPenetration: 85,
+      avgMessagesPerSpeaker: 75,
+      responseSpeedScore: 82,
+      timeDistributionScore: 78,
+      topicRelevanceScore: 92,
+      atmosphereScore: 88,
+    },
     todayMessages: 156,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
@@ -199,7 +285,14 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 32,
     createdAt: '2024-02-20',
     latestScore: 72,
-    scoreBreakdown: { avgMessagesPerMember: 2.8, speakerPenetration: 65, avgMessagesPerSpeaker: 3.9, coreMemberConcentration: 45, messageTimeDistribution: 62 },
+    scoreBreakdown: {
+      speakerPenetration: 65,
+      avgMessagesPerSpeaker: 68,
+      responseSpeedScore: 70,
+      timeDistributionScore: 62,
+      topicRelevanceScore: 78,
+      atmosphereScore: 75,
+    },
     todayMessages: 89,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
@@ -211,10 +304,23 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 28,
     createdAt: '2024-03-10',
     latestScore: 45,
-    scoreBreakdown: { avgMessagesPerMember: 8.4, speakerPenetration: 38, avgMessagesPerSpeaker: 22.0, coreMemberConcentration: 65, messageTimeDistribution: 45 },
+    scoreBreakdown: {
+      speakerPenetration: 38,
+      avgMessagesPerSpeaker: 100,
+      responseSpeedScore: 55,
+      timeDistributionScore: 45,
+      topicRelevanceScore: 42,
+      atmosphereScore: 28,
+    },
     todayMessages: 234,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'warning',
+    riskStatus: {
+      isNewGroup: false,
+      isMicroGroup: false,
+      hasConflictRisk: true,
+      riskMessage: '检测到群内存在冲突风险，评分已降权处理',
+    },
   },
   {
     id: '4',
@@ -223,7 +329,14 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 18,
     createdAt: '2024-04-05',
     latestScore: 91,
-    scoreBreakdown: { avgMessagesPerMember: 3.7, speakerPenetration: 88, avgMessagesPerSpeaker: 4.2, coreMemberConcentration: 28, messageTimeDistribution: 85 },
+    scoreBreakdown: {
+      speakerPenetration: 88,
+      avgMessagesPerSpeaker: 72,
+      responseSpeedScore: 90,
+      timeDistributionScore: 85,
+      topicRelevanceScore: 95,
+      atmosphereScore: 94,
+    },
     todayMessages: 67,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
@@ -235,7 +348,14 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 15,
     createdAt: '2024-05-18',
     latestScore: 28,
-    scoreBreakdown: { avgMessagesPerMember: 0.8, speakerPenetration: 22, avgMessagesPerSpeaker: 3.6, coreMemberConcentration: 75, messageTimeDistribution: 25 },
+    scoreBreakdown: {
+      speakerPenetration: 22,
+      avgMessagesPerSpeaker: 60,
+      responseSpeedScore: 15,
+      timeDistributionScore: 25,
+      topicRelevanceScore: 35,
+      atmosphereScore: 40,
+    },
     todayMessages: 12,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'critical',
@@ -247,10 +367,42 @@ export const mockChatGroups: ChatGroup[] = [
     memberCount: 8,
     createdAt: '2024-01-01',
     latestScore: 68,
-    scoreBreakdown: { avgMessagesPerMember: 2.9, speakerPenetration: 78, avgMessagesPerSpeaker: 3.7, coreMemberConcentration: 42, messageTimeDistribution: 68 },
+    scoreBreakdown: {
+      speakerPenetration: 78,
+      avgMessagesPerSpeaker: 65,
+      responseSpeedScore: 60,
+      timeDistributionScore: 68,
+      topicRelevanceScore: 72,
+      atmosphereScore: 70,
+    },
     todayMessages: 23,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
+  },
+  {
+    id: '7',
+    name: '新项目筹备群',
+    description: '新项目组筹备讨论',
+    memberCount: 2,
+    createdAt: '2024-12-01',
+    latestScore: 0,
+    scoreBreakdown: {
+      speakerPenetration: 0,
+      avgMessagesPerSpeaker: 0,
+      responseSpeedScore: 0,
+      timeDistributionScore: 0,
+      topicRelevanceScore: 0,
+      atmosphereScore: 0,
+    },
+    todayMessages: 3,
+    lastAnalysisTime: '2024-12-04 09:00',
+    status: 'warning',
+    riskStatus: {
+      isNewGroup: true,
+      isMicroGroup: true,
+      hasConflictRisk: false,
+      riskMessage: '群聊数据尚不充分，暂不生成评分',
+    },
   },
 ];
 
@@ -267,26 +419,50 @@ export const generateMockReports = (groupId: string, days: number = 30): Analysi
     const baseScore = group.latestScore + (Math.random() - 0.5) * 20;
     const score = Math.max(0, Math.min(100, Math.round(baseScore)));
 
+    // 生成六维评分数据
+    const atmosphereScore = Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 20)));
+    const hasConflictRisk = atmosphereScore < defaultThresholds.atmosphereMeltdownThreshold;
+    const totalMessages = Math.floor(Math.random() * 200) + 50;
+    const isNewGroup = totalMessages < defaultThresholds.coldStartMessageThreshold;
+    const isMicroGroup = group.memberCount < defaultThresholds.microGroupMemberThreshold;
+
     return {
       id: `${groupId}-${dateStr}`,
       groupId,
       date: dateStr,
       overallScore: score,
       scoreBreakdown: {
-        avgMessagesPerMember: Math.max(0.5, Math.min(10, 3 + (Math.random() - 0.5) * 4)),
+        // 统计类指标
         speakerPenetration: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
-        avgMessagesPerSpeaker: Math.max(1, Math.min(20, 5 + (Math.random() - 0.5) * 10)),
-        coreMemberConcentration: Math.max(0, Math.min(100, 100 - score + Math.round((Math.random() - 0.5) * 20))),
-        messageTimeDistribution: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
+        avgMessagesPerSpeaker: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 20))),
+        responseSpeedScore: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 25))),
+        timeDistributionScore: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 15))),
+        // 语义类指标
+        topicRelevanceScore: Math.max(0, Math.min(100, score + Math.round((Math.random() - 0.5) * 20))),
+        atmosphereScore,
       },
-      messageCount: Math.floor(Math.random() * 200) + 50,
+      messageCount: totalMessages,
       activeMembers: Math.floor(Math.random() * group.memberCount * 0.8) + Math.floor(group.memberCount * 0.2),
       baseMetrics: {
-        totalMessages: Math.floor(Math.random() * 200) + 50,
+        totalMessages,
         totalMembers: group.memberCount,
         activeSpeakers: Math.floor(Math.random() * group.memberCount * 0.8) + Math.floor(group.memberCount * 0.2),
         activeHours: Math.floor(Math.random() * 8) + 10,
+        totalHours: 12,
         top20Percentage: Math.max(30, Math.min(85, 60 + (Math.random() - 0.5) * 40)),
+        medianResponseInterval: Math.floor(Math.random() * 250) + 30, // 30-280秒
+      },
+      riskStatus: {
+        isNewGroup,
+        isMicroGroup,
+        hasConflictRisk,
+        riskMessage: hasConflictRisk
+          ? '检测到群内存在冲突风险，评分已降权处理'
+          : isNewGroup
+            ? '群聊数据尚不充分，暂不生成评分'
+            : isMicroGroup
+              ? '微型群不参与排名'
+              : undefined,
       },
       aiInsight: {
         ...mockAIInsight,
