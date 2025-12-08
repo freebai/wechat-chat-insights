@@ -149,6 +149,9 @@ export interface ChatGroup {
   status: 'healthy' | 'warning' | 'critical';
   riskStatus?: RiskStatus;
   isExcludedFromScoring?: boolean;  // 是否被排除评分（由配置决定）
+  recentScores?: number[];  // 近期历史分数（用于计算平均值）
+  owner?: string;  // 群主
+  previousScore?: number;  // 上次分数（用于计算增减）
 }
 
 // Score level definitions
@@ -291,6 +294,9 @@ export const mockChatGroups: ChatGroup[] = [
     todayMessages: 156,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
+    recentScores: [87, 85, 89, 86, 88, 87, 84],
+    owner: '张经理',
+    previousScore: 85,
   },
   {
     id: '2',
@@ -310,6 +316,9 @@ export const mockChatGroups: ChatGroup[] = [
     todayMessages: 89,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
+    recentScores: [72, 70, 74, 71, 73, 69, 72],
+    owner: '赵销售',
+    previousScore: 70,
   },
   {
     id: '3',
@@ -335,6 +344,9 @@ export const mockChatGroups: ChatGroup[] = [
       hasConflictRisk: true,
       riskMessage: '检测到群内存在冲突风险，评分已降权处理',
     },
+    recentScores: [45, 48, 42, 46, 44, 47, 43],
+    owner: '周客服',
+    previousScore: 48,
   },
   {
     id: '4',
@@ -354,6 +366,9 @@ export const mockChatGroups: ChatGroup[] = [
     todayMessages: 67,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
+    recentScores: [91, 90, 92, 89, 91, 93, 90],
+    owner: '陈运营',
+    previousScore: 90,
   },
   {
     id: '5',
@@ -373,6 +388,9 @@ export const mockChatGroups: ChatGroup[] = [
     todayMessages: 12,
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'critical',
+    recentScores: [28, 30, 25, 29, 27, 31, 26],
+    owner: '吴财务',
+    previousScore: 30,
   },
   {
     id: '6',
@@ -393,6 +411,9 @@ export const mockChatGroups: ChatGroup[] = [
     lastAnalysisTime: '2024-12-04 09:00',
     status: 'healthy',
     isExcludedFromScoring: true, // 测试：不参与评分的群
+    recentScores: [68, 67, 70, 66, 69, 68, 65],
+    owner: 'CEO',
+    previousScore: 67,
   },
   {
     id: '7',
@@ -418,6 +439,9 @@ export const mockChatGroups: ChatGroup[] = [
       hasConflictRisk: false,
       riskMessage: '群聊数据尚不充分，暂不生成评分',
     },
+    recentScores: [0, 0, 0, 0, 0, 0, 0],
+    owner: '李工程师',
+    previousScore: 0,
   },
 ];
 

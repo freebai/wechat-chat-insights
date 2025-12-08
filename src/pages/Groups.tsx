@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Users, MessageSquare, Clock, AlertTriangle, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Users, MessageSquare, Clock, AlertTriangle, TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -105,9 +105,11 @@ export default function Groups() {
           <thead>
             <tr className="border-b border-border">
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">群聊名称</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">群主</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">成员数</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">今日消息</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">健康分</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">近7天平均</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">最后分析</th>
               <th className="text-right py-4 px-6 text-sm font-medium text-muted-foreground">操作</th>
             </tr>
@@ -115,21 +117,20 @@ export default function Groups() {
           <tbody>
             {paginatedGroups.map((group) => {
               const level = getScoreLevel(group.latestScore);
+              // 计算近7天平均分
+              const avgScore = group.recentScores && group.recentScores.length > 0
+                ? Math.round(group.recentScores.reduce((sum, score) => sum + score, 0) / group.recentScores.length)
+                : null;
+              // 计算分数增减
+              const scoreDiff = group.previousScore !== undefined ? group.latestScore - group.previousScore : 0;
 
               return (
                 <tr key={group.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                   <td className="py-4 px-6">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{group.name}</span>
-                        {group.isExcludedFromScoring && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                            不参与评分
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate max-w-xs">{group.description}</p>
-                    </div>
+                    <span className="font-medium">{group.name}</span>
+                  </td>
+                  <td className="py-4 px-6 text-sm">
+                    {group.owner || '--'}
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-2 text-sm">
@@ -145,10 +146,21 @@ export default function Groups() {
                   </td>
                   <td className="py-4 px-6">
                     {(() => {
-                      const isInsufficientData = group.riskStatus?.isNewGroup || group.riskStatus?.isMicroGroup;
+                      // 不参与评分的群聊
+                      if (group.isExcludedFromScoring) {
+                        return (
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-muted-foreground">--</span>
+                            <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                              不参与评分
+                            </span>
+                          </div>
+                        );
+                      }
 
+                      // 数据不足的群聊
+                      const isInsufficientData = group.riskStatus?.isNewGroup || group.riskStatus?.isMicroGroup;
                       if (isInsufficientData) {
-                        // 构建 tooltip 内容
                         const reasons: string[] = [];
                         if (group.riskStatus?.isNewGroup) reasons.push('消息不足5条');
                         if (group.riskStatus?.isMicroGroup) reasons.push('成员少于3人');
@@ -164,14 +176,36 @@ export default function Groups() {
                         );
                       }
 
+                      // 正常显示健康分和增减
                       return (
                         <div className="flex items-center gap-2">
                           <span className={cn('font-semibold', level.color)}>{group.latestScore}</span>
-                          <span className={cn('text-xs px-2 py-0.5 rounded', level.bgColor, level.color)}>
-                            {level.label}
-                          </span>
+                          {scoreDiff !== 0 && (
+                            <span className={cn(
+                              'flex items-center text-xs',
+                              scoreDiff > 0 ? 'text-primary' : 'text-destructive'
+                            )}>
+                              {scoreDiff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                              {Math.abs(scoreDiff)}
+                            </span>
+                          )}
                         </div>
                       );
+                    })()}
+                  </td>
+                  <td className="py-4 px-6">
+                    {(() => {
+                      // 不参与评分或数据不足的群聊，也不显示平均分
+                      if (group.isExcludedFromScoring || group.riskStatus?.isNewGroup || group.riskStatus?.isMicroGroup) {
+                        return <span className="text-sm text-muted-foreground">--</span>;
+                      }
+
+                      // 显示近7天平均分
+                      if (avgScore !== null) {
+                        return <span className="text-sm font-medium">{avgScore}</span>;
+                      }
+
+                      return <span className="text-sm text-muted-foreground">--</span>;
                     })()}
                   </td>
                   <td className="py-4 px-6">
@@ -183,9 +217,9 @@ export default function Groups() {
                   <td className="py-4 px-6 text-right">
                     <Link
                       to={`/groups/${group.id}`}
-                      className="text-primary hover:text-primary/80 transition-colors"
+                      className="text-primary hover:text-primary/80 transition-colors text-sm"
                     >
-                      <ExternalLink className="h-4 w-4" />
+                      查看
                     </Link>
                   </td>
                 </tr>

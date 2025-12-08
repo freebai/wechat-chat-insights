@@ -92,7 +92,7 @@ export default function Reports() {
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">群聊</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">健康分</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">消息数</th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">活跃成员</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">发言人数</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">摘要</th>
               <th className="text-right py-4 px-6 text-sm font-medium text-muted-foreground">操作</th>
             </tr>
@@ -130,7 +130,7 @@ export default function Reports() {
                     </div>
                   </td>
                   <td className="py-4 px-6 text-sm">{report.messageCount}</td>
-                  <td className="py-4 px-6 text-sm">{report.activeMembers}</td>
+                  <td className="py-4 px-6 text-sm">{report.baseMetrics.activeSpeakers}</td>
                   <td className="py-4 px-6">
                     <p className="text-sm text-muted-foreground truncate max-w-xs">
                       {report.aiInsight.summary.slice(0, 50)}...
