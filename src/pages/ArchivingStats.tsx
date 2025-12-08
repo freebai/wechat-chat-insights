@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-import { Users, UserCheck, FileCheck, TrendingUp } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -24,46 +23,12 @@ export default function ArchivingStats() {
 
     const RADIAN = Math.PI / 180;
 
-    // Calculate totals for stat cards
-    const totalCustomers = mockCustomerConsentStats.reduce((sum, item) => sum + item.value, 0);
-    const agreedCustomers = mockCustomerConsentStats.find(item => item.name === '已同意')?.value || 0;
-    const totalMembers = mockMemberArchivingStats.reduce((sum, item) => sum + item.value, 0);
-    const enabledMembers = mockMemberArchivingStats.filter(item => item.name !== '未开启').reduce((sum, item) => sum + item.value, 0);
-
     return (
         <div className="container mx-auto px-6 py-8">
             {/* Header with gradient accent */}
             <div className="flex items-center gap-3 mb-8">
                 <div className="w-1.5 h-8 bg-gradient-to-b from-primary to-primary/50 rounded-full" />
                 <h1 className="text-2xl font-bold">存档情况统计</h1>
-            </div>
-
-            {/* Stat Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-card border rounded-xl p-4 relative overflow-hidden group hover:shadow-lg transition-shadow">
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform" />
-                    <Users className="w-5 h-5 text-primary mb-2" />
-                    <p className="text-sm text-muted-foreground">客户总数</p>
-                    <p className="text-2xl font-bold">{totalCustomers}</p>
-                </div>
-                <div className="bg-card border rounded-xl p-4 relative overflow-hidden group hover:shadow-lg transition-shadow">
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/5 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform" />
-                    <UserCheck className="w-5 h-5 text-emerald-500 mb-2" />
-                    <p className="text-sm text-muted-foreground">已同意客户</p>
-                    <p className="text-2xl font-bold text-emerald-600">{agreedCustomers}</p>
-                </div>
-                <div className="bg-card border rounded-xl p-4 relative overflow-hidden group hover:shadow-lg transition-shadow">
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/5 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform" />
-                    <FileCheck className="w-5 h-5 text-blue-500 mb-2" />
-                    <p className="text-sm text-muted-foreground">成员总数</p>
-                    <p className="text-2xl font-bold">{totalMembers}</p>
-                </div>
-                <div className="bg-card border rounded-xl p-4 relative overflow-hidden group hover:shadow-lg transition-shadow">
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/5 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform" />
-                    <TrendingUp className="w-5 h-5 text-purple-500 mb-2" />
-                    <p className="text-sm text-muted-foreground">已开启成员</p>
-                    <p className="text-2xl font-bold text-purple-600">{enabledMembers}</p>
-                </div>
             </div>
 
             {/* Filters */}
@@ -109,9 +74,9 @@ export default function ArchivingStats() {
                                         <Cell key={`cell-${index}`} fill={entry.color} />
                                     ))}
                                 </Pie>
-                                <RechartsTooltip 
-                                    contentStyle={{ 
-                                        backgroundColor: 'hsl(var(--card))', 
+                                <RechartsTooltip
+                                    contentStyle={{
+                                        backgroundColor: 'hsl(var(--card))',
                                         border: '1px solid hsl(var(--border))',
                                         borderRadius: '8px',
                                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
@@ -162,9 +127,9 @@ export default function ArchivingStats() {
                                         <Cell key={`cell-${index}`} fill={entry.color} />
                                     ))}
                                 </Pie>
-                                <RechartsTooltip 
-                                    contentStyle={{ 
-                                        backgroundColor: 'hsl(var(--card))', 
+                                <RechartsTooltip
+                                    contentStyle={{
+                                        backgroundColor: 'hsl(var(--card))',
                                         border: '1px solid hsl(var(--border))',
                                         borderRadius: '8px',
                                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
@@ -188,7 +153,7 @@ export default function ArchivingStats() {
                             <TableRow className="bg-muted/50">
                                 <TableHead className="font-semibold">成员</TableHead>
                                 <TableHead className="font-semibold">存档开启情况</TableHead>
-                                <TableHead className="font-semibold">客户同意情况</TableHead>
+                                <TableHead className="font-semibold">客户同意情况（已同意/客户总数）</TableHead>
                                 <TableHead className="font-semibold">操作</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -203,11 +168,7 @@ export default function ArchivingStats() {
                                         {member.archivingType === 'none' && <span className="text-muted-foreground bg-muted px-2.5 py-1 rounded-full text-xs font-medium">未开启</span>}
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-2 text-sm">
-                                            <span className="text-emerald-600 font-medium">已同意：{member.agreedCount}</span>
-                                            <span className="text-muted-foreground">/</span>
-                                            <span className="text-muted-foreground">客户总数：{member.customerCount}</span>
-                                        </div>
+                                        <span className="text-sm font-medium">{member.agreedCount}/{member.customerCount}</span>
                                     </TableCell>
                                     <TableCell>
                                         <Button
