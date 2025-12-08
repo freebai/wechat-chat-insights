@@ -1,13 +1,20 @@
 import { AIInsight } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
-import { Sparkles, AlertCircle, CheckCircle2, Brain } from 'lucide-react';
+import { Sparkles, AlertCircle, CheckCircle2, Brain, Calendar, ChevronDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AIAnalysisPanelProps {
   insight: AIInsight;
   date?: string;
+  /** 可用的分析日期列表（仅从群聊管理进入时使用） */
+  availableDates?: string[];
+  /** 日期变更回调 */
+  onDateChange?: (date: string) => void;
+  /** 是否显示日期选择器（从群聊管理进入时为true） */
+  showDatePicker?: boolean;
 }
 
-export function AIAnalysisPanel({ insight, date }: AIAnalysisPanelProps) {
+export function AIAnalysisPanel({ insight, date, availableDates = [], onDateChange, showDatePicker = false }: AIAnalysisPanelProps) {
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'positive': return 'text-emerald-600';
@@ -38,9 +45,25 @@ export function AIAnalysisPanel({ insight, date }: AIAnalysisPanelProps) {
               <p className="text-xs text-muted-foreground mt-0.5">基于对话内容的深度分析</p>
             </div>
           </div>
-          <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
-            {date ? `${date}` : 'GPT-4'}
-          </span>
+          {showDatePicker && availableDates.length > 0 ? (
+            <Select value={date} onValueChange={onDateChange}>
+              <SelectTrigger className="w-36 h-8 text-xs font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+                <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                <SelectValue placeholder="选择日期" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableDates.map((d) => (
+                  <SelectItem key={d} value={d} className="text-xs">
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
+              {date ? `${date}` : 'GPT-4'}
+            </span>
+          )}
         </div>
       </div>
 
@@ -115,8 +138,8 @@ export function AIAnalysisPanel({ insight, date }: AIAnalysisPanelProps) {
                 key={index}
                 className={cn(
                   "flex items-start gap-3 p-3 rounded-xl text-sm border",
-                  highlight.includes('需关注') 
-                    ? 'bg-amber-50 border-amber-200 text-amber-800' 
+                  highlight.includes('需关注')
+                    ? 'bg-amber-50 border-amber-200 text-amber-800'
                     : 'bg-emerald-50 border-emerald-200 text-emerald-800'
                 )}
               >

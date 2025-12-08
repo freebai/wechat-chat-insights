@@ -84,28 +84,55 @@ export default function GroupDetail() {
     });
   }, [reports, dateRange]);
 
-  // 趋势数据：最少展示7天，以选择器的结束时间往前推
+  // 趋势数据：从分析记录进入时基于报告日期往前推7天，否则基于日期选择器
   const trendReports = useMemo(() => {
-    const daysDiff = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24));
-    const daysToShow = Math.max(7, daysDiff);
-    const from = new Date(dateRange.to);
-    from.setDate(from.getDate() - daysToShow);
+    let endDate: Date;
+    if (fromReports && reportId) {
+      // 从分析记录进入：使用当前报告的日期
+      const targetReport = reports.find(r => r.id === reportId);
+      endDate = targetReport ? new Date(targetReport.date) : dateRange.to;
+    } else {
+      endDate = dateRange.to;
+    }
+
+    const from = new Date(endDate);
+    from.setDate(from.getDate() - 7);
     return reports.filter(report => {
       const reportDate = new Date(report.date);
-      return reportDate >= from && reportDate <= dateRange.to;
+      return reportDate >= from && reportDate <= endDate;
     });
-  }, [reports, dateRange]);
+  }, [reports, dateRange, fromReports, reportId]);
+
+  // 从群聊管理进入时，用于追踪选中的AI分析日期
+  const [selectedAnalysisDate, setSelectedAnalysisDate] = useState<string | null>(null);
+
+  // 获取日期范围内可用的AI分析日期列表（排序：最新在前）
+  const availableAnalysisDates = useMemo(() => {
+    return filteredReports.map(r => r.date).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  }, [filteredReports]);
+
+  // 当筛选条件变化时，重置选中日期为最新
+  useEffect(() => {
+    if (!fromReports && availableAnalysisDates.length > 0) {
+      setSelectedAnalysisDate(availableAnalysisDates[0]);
+    }
+  }, [fromReports, availableAnalysisDates]);
 
   // 获取当前展示的报告
   const currentReport = useMemo(() => {
     if (reportId) {
-      // 如果有指定 reportId，尝试匹配
+      // 从分析记录进入：使用指定的 reportId
       const found = reports.find(r => r.id === reportId);
+      if (found) return found;
+    }
+    if (!fromReports && selectedAnalysisDate) {
+      // 从群聊管理进入：使用选中的日期
+      const found = filteredReports.find(r => r.date === selectedAnalysisDate);
       if (found) return found;
     }
     // 默认返回筛选后的第一个
     return filteredReports[0];
-  }, [reportId, reports, filteredReports]);
+  }, [reportId, reports, filteredReports, fromReports, selectedAnalysisDate]);
 
   if (!group || !currentReport) {
     return (
@@ -165,7 +192,9 @@ export default function GroupDetail() {
             </span>
           </div>
         </div>
-        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        {!fromReports && (
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        )}
       </div>
 
       {/* Excluded from Analysis Notice */}
@@ -216,7 +245,13 @@ export default function GroupDetail() {
 
       {/* AI Analysis Panel */}
       <div className="mb-6">
-        <AIAnalysisPanel insight={currentReport.aiInsight} date={currentReport.date} />
+        <AIAnalysisPanel
+          insight={currentReport.aiInsight}
+          date={currentReport.date}
+          showDatePicker={!fromReports}
+          availableDates={availableAnalysisDates}
+          onDateChange={setSelectedAnalysisDate}
+        />
       </div>
 
       {/* Base Metrics - Full Width */}
