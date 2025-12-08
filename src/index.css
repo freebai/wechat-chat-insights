@@ -6,49 +6,49 @@
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
 
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 222 47% 8%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 142 70% 45%;
+    --primary: 142 70% 40%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 47% 12%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 222 47% 14%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 210 20% 94%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 142 70% 45%;
+    --accent: 142 70% 40%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 222 30% 18%;
-    --input: 222 30% 18%;
-    --ring: 142 70% 45%;
+    --border: 214 20% 88%;
+    --input: 214 20% 88%;
+    --ring: 142 70% 40%;
 
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --wechat-green: 142 70% 45%;
-    --wechat-green-glow: 142 70% 55%;
-    --chart-1: 142 70% 45%;
+    --wechat-green: 142 70% 40%;
+    --wechat-green-glow: 142 70% 50%;
+    --chart-1: 142 70% 40%;
     --chart-2: 199 89% 48%;
-    --chart-3: 280 65% 60%;
+    --chart-3: 280 65% 55%;
     --chart-4: 35 92% 50%;
-    --chart-5: 340 75% 55%;
+    --chart-5: 340 75% 50%;
 
     --gradient-primary: linear-gradient(135deg, hsl(142 70% 45%), hsl(142 70% 35%));
-    --gradient-card: linear-gradient(180deg, hsl(222 47% 10%), hsl(222 47% 7%));
-    --shadow-glow: 0 0 40px hsl(142 70% 45% / 0.15);
-    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.3);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 20% 98%));
+    --shadow-glow: 0 0 40px hsl(142 70% 45% / 0.1);
+    --shadow-card: 0 4px 24px hsl(222 47% 11% / 0.08);
   }
 
   .dark {
@@ -70,11 +70,11 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+    @apply bg-card border border-border shadow-sm;
   }
 
   .glow-primary {
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 4px 14px hsl(142 70% 40% / 0.15);
   }
 
   .text-gradient {
