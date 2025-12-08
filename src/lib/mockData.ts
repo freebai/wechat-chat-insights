@@ -495,3 +495,64 @@ export const generateMockReports = (groupId: string, days: number = 30): Analysi
     };
   });
 };
+
+// 会话存档统计数据接口
+export interface ArchivingStat {
+  name: string;
+  value: number;
+  color: string;
+}
+
+// 成员存档状态接口
+export interface MemberArchivingStatus {
+  id: string;
+  name: string;
+  department: string;
+  archivingType: 'office' | 'service' | 'enterprise' | 'none'; // 办公版 | 服务版 | 企业版 | 未开启
+  customerCount: number;
+  agreedCount: number;
+}
+
+// Mock Archiving Stats Data
+export const mockCustomerConsentStats: ArchivingStat[] = [
+  { name: '已同意会话存档', value: 39, color: '#0084ff' }, // Azure Blue
+  { name: '未同意会话存档', value: 0, color: '#e0e0e0' },
+];
+
+export const mockMemberArchivingStats: ArchivingStat[] = [
+  { name: '已开启会话存档', value: 2, color: '#e1f5fe' }, // Light Blue
+  { name: '未开启会话存档', value: 836, color: '#fafafa' }, // Light Grey
+];
+
+// Mock Member Archiving List
+export const mockMemberArchivingList: MemberArchivingStatus[] = [
+  { id: '1', name: '张经理', department: '产品部', archivingType: 'enterprise', customerCount: 15, agreedCount: 15 },
+  { id: '2', name: '李工程师', department: '研发部', archivingType: 'office', customerCount: 0, agreedCount: 0 },
+  { id: '3', name: '王产品', department: '产品部', archivingType: 'service', customerCount: 8, agreedCount: 8 },
+  { id: '4', name: '赵销售', department: '销售部', archivingType: 'enterprise', customerCount: 120, agreedCount: 118 },
+  { id: '5', name: '陈运营', department: '运营部', archivingType: 'service', customerCount: 56, agreedCount: 56 },
+  { id: '6', name: '周客服', department: '客服部', archivingType: 'enterprise', customerCount: 200, agreedCount: 198 },
+  { id: '7', name: '吴财务', department: '财务部', archivingType: 'office', customerCount: 5, agreedCount: 5 },
+];
+
+// 客户同意情况明细接口
+export interface CustomerConsent {
+  id: string;
+  name: string;
+  employeeId: string;
+  employeeName: string;
+  status: 'agreed' | 'disagreed';
+  changeTime?: string;
+}
+
+// Mock Customer Consent List
+export const mockCustomerConsentList: CustomerConsent[] = [
+  { id: '1', name: '客户A', employeeId: '1', employeeName: '张经理', status: 'agreed', changeTime: '2022-08-10 10:30' },
+  { id: '2', name: '客户B', employeeId: '1', employeeName: '张经理', status: 'agreed', changeTime: '2022-08-11 14:20' },
+  { id: '3', name: '客户C', employeeId: '3', employeeName: '王产品', status: 'agreed', changeTime: '2022-08-12 09:15' },
+  { id: '4', name: '客户D', employeeId: '3', employeeName: '王产品', status: 'disagreed' },
+  { id: '5', name: '客户E', employeeId: '4', employeeName: '赵销售', status: 'agreed', changeTime: '2022-08-13 16:45' },
+  { id: '6', name: '客户F', employeeId: '4', employeeName: '赵销售', status: 'agreed', changeTime: '2022-08-14 11:00' },
+  { id: '7', name: '客户G', employeeId: '5', employeeName: '陈运营', status: 'disagreed' },
+  { id: '8', name: '客户H', employeeId: '6', employeeName: '周客服', status: 'agreed', changeTime: '2022-08-15 13:30' },
+];

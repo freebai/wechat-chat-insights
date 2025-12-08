@@ -1,9 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  MessageSquare, 
-  FileText, 
+import {
+  LayoutDashboard,
+  MessageSquare,
+  FileText,
   Settings,
+  Shield,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -15,6 +16,7 @@ const navItems = [
   { path: '/', label: '总览', icon: LayoutDashboard },
   { path: '/groups', label: '群聊管理', icon: MessageSquare },
   { path: '/reports', label: '分析记录', icon: FileText },
+  { path: '/archiving', label: '存档统计', icon: Shield },
   { path: '/settings/rules', label: '规则配置', icon: Settings },
 ];
 
@@ -51,17 +53,17 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className="flex-1 py-4 px-2 space-y-1">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path || 
+            const isActive = location.pathname === item.path ||
               (item.path !== '/' && location.pathname.startsWith(item.path));
-            
+
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                  isActive 
-                    ? 'bg-primary/10 text-primary' 
+                  isActive
+                    ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 )}
               >

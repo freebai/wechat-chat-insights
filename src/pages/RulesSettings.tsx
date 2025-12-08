@@ -124,40 +124,6 @@ export default function RulesSettings() {
               </div>
               <p className="text-xs text-muted-foreground">当前：氛围分 &lt; {thresholds.atmosphereMeltdownThreshold} 触发预警并降权</p>
             </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                最少消息数要求
-                <InfoTooltip content="群内消息数少于此值时，认为数据不足，暂不生成评分，避免评分失真。" />
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  value={thresholds.coldStartMessageThreshold}
-                  onChange={(e) => setThresholds({ ...thresholds, coldStartMessageThreshold: Number(e.target.value) })}
-                  className="w-24"
-                />
-                <span className="text-sm text-muted-foreground">条</span>
-              </div>
-              <p className="text-xs text-muted-foreground">当前：消息 &lt; {thresholds.coldStartMessageThreshold} 条的群暂不评分</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                最少成员数要求
-                <InfoTooltip content="成员数少于此值的群为微型群，评分仅供参考，不参与群健康排名。" />
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  value={thresholds.microGroupMemberThreshold}
-                  onChange={(e) => setThresholds({ ...thresholds, microGroupMemberThreshold: Number(e.target.value) })}
-                  className="w-24"
-                />
-                <span className="text-sm text-muted-foreground">人</span>
-              </div>
-              <p className="text-xs text-muted-foreground">当前：成员 &lt; {thresholds.microGroupMemberThreshold} 人的群不参与排名</p>
-            </div>
           </div>
         </div>
 
@@ -338,6 +304,49 @@ export default function RulesSettings() {
               )}
             </div>
           </RadioGroup>
+
+          {/* 评分参与门槛 */}
+          <div className="mt-6 pt-6 border-t border-border/50">
+            <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
+              评分参与门槛
+              <InfoTooltip content="群聊需满足以下条件才会参与评分，否则仅显示基础指标" />
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  最少消息数要求
+                  <InfoTooltip content="群内消息数少于此值时，认为数据不足，暂不生成评分，避免评分失真。" />
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={thresholds.coldStartMessageThreshold}
+                    onChange={(e) => setThresholds({ ...thresholds, coldStartMessageThreshold: Number(e.target.value) })}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-muted-foreground">条</span>
+                </div>
+                <p className="text-xs text-muted-foreground">当前：消息 &lt; {thresholds.coldStartMessageThreshold} 条的群暂不评分</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  最少成员数要求
+                  <InfoTooltip content="成员数少于此值的群为微型群，评分仅供参考，不参与群健康排名。" />
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={thresholds.microGroupMemberThreshold}
+                    onChange={(e) => setThresholds({ ...thresholds, microGroupMemberThreshold: Number(e.target.value) })}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-muted-foreground">人</span>
+                </div>
+                <p className="text-xs text-muted-foreground">当前：成员 &lt; {thresholds.microGroupMemberThreshold} 人的群不参与排名</p>
+              </div>
+            </div>
+          </div>
 
           {/* 提示信息 */}
           <div className="mt-6 flex items-start gap-2 p-3 bg-muted/30 rounded-lg">

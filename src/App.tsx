@@ -9,6 +9,8 @@ import Groups from "./pages/Groups";
 import GroupDetail from "./pages/GroupDetail";
 import Reports from "./pages/Reports";
 import RulesSettings from "./pages/RulesSettings";
+import ArchivingStats from "./pages/ArchivingStats";
+import CustomerConsentDetails from "./pages/CustomerConsentDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +27,8 @@ const App = () => (
             <Route path="/groups" element={<Groups />} />
             <Route path="/groups/:id" element={<GroupDetail />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/archiving" element={<ArchivingStats />} />
+            <Route path="/archiving/customer-details" element={<CustomerConsentDetails />} />
             <Route path="/settings/rules" element={<RulesSettings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
