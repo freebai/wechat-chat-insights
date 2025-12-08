@@ -76,7 +76,7 @@ export default function RulesSettings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                活跃发言量满分线
+                人均消息满分线
                 <InfoTooltip content="每个发言者平均发送多少条消息才能获得满分。例如设为20，表示人均发言20条即可获得该项满分。" />
               </Label>
               <div className="flex items-center gap-2">
@@ -93,7 +93,7 @@ export default function RulesSettings() {
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                消息响应时间上限
+                消息间隔时间0分线
                 <InfoTooltip content="群友之间的消息回复间隔超过此时间后，消息间隔分降为0。间隔越短，得分越高。" />
               </Label>
               <div className="flex items-center gap-2">
@@ -140,7 +140,6 @@ export default function RulesSettings() {
             <div className="flex items-center gap-2 mb-4">
               <span className="w-2 h-2 rounded-full bg-blue-500"></span>
               <span className="text-sm font-medium">统计类指标</span>
-              <span className="text-xs text-muted-foreground">(推荐60%)</span>
               <span className={`ml-auto text-sm font-medium ${statisticalTotal === 60 ? 'text-primary' : 'text-yellow-500'}`}>
                 当前: {statisticalTotal}%
               </span>
@@ -160,7 +159,7 @@ export default function RulesSettings() {
                     <Slider
                       value={[weights[key as keyof typeof weights]]}
                       onValueChange={([value]) => setWeights({ ...weights, [key]: value })}
-                      max={40}
+                      max={100}
                       step={1}
                     />
                   </div>
@@ -173,7 +172,6 @@ export default function RulesSettings() {
             <div className="flex items-center gap-2 mb-4">
               <span className="w-2 h-2 rounded-full bg-purple-500"></span>
               <span className="text-sm font-medium">语义类指标</span>
-              <span className="text-xs text-muted-foreground">(推荐40%)</span>
               <span className={`ml-auto text-sm font-medium ${semanticTotal === 40 ? 'text-primary' : 'text-yellow-500'}`}>
                 当前: {semanticTotal}%
               </span>
@@ -193,7 +191,7 @@ export default function RulesSettings() {
                     <Slider
                       value={[weights[key as keyof typeof weights]]}
                       onValueChange={([value]) => setWeights({ ...weights, [key]: value })}
-                      max={40}
+                      max={100}
                       step={1}
                     />
                   </div>
