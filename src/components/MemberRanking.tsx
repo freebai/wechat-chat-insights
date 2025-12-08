@@ -1,5 +1,6 @@
 import { MemberStats } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
+import { Trophy } from 'lucide-react';
 
 interface MemberRankingProps {
   members: MemberStats[];
@@ -9,25 +10,33 @@ export function MemberRanking({ members }: MemberRankingProps) {
   const maxCount = Math.max(...members.map(m => m.messageCount));
 
   return (
-    <div className="glass-card rounded-xl p-6 animate-fade-up" style={{ animationDelay: '200ms' }}>
-      <h3 className="text-lg font-semibold mb-4">成员活跃度排行</h3>
+    <div className="bg-card rounded-xl p-6 border border-border shadow-sm animate-fade-up" style={{ animationDelay: '200ms' }}>
+      <div className="flex items-center gap-2 mb-5">
+        <div className="p-1.5 rounded-lg bg-amber-50">
+          <Trophy className="h-4 w-4 text-amber-500" />
+        </div>
+        <h3 className="text-lg font-semibold">成员活跃度排行</h3>
+      </div>
       <div className="space-y-3">
         {members.slice(0, 8).map((member, index) => (
-          <div key={member.name} className="flex items-center gap-3">
+          <div key={member.name} className="flex items-center gap-3 group">
             <span className={cn(
-              "w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium",
-              index < 3 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-110",
+              index === 0 && "bg-gradient-to-br from-amber-400 to-amber-500 text-white shadow-sm",
+              index === 1 && "bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-sm",
+              index === 2 && "bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-sm",
+              index > 2 && "bg-muted text-muted-foreground"
             )}>
               {index + 1}
             </span>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium truncate">{member.name}</span>
-                <span className="text-sm text-muted-foreground">{member.messageCount}</span>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-sm font-medium truncate group-hover:text-primary transition-colors">{member.name}</span>
+                <span className="text-sm font-semibold text-foreground">{member.messageCount}</span>
               </div>
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-primary to-wechat-glow rounded-full transition-all duration-500"
+                  className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full transition-all duration-500"
                   style={{ width: `${(member.messageCount / maxCount) * 100}%` }}
                 />
               </div>

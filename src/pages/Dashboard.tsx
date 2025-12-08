@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Users, TrendingUp, ArrowRight } from 'lucide-react';
+import { MessageSquare, Users, TrendingUp, ArrowRight, Sparkles } from 'lucide-react';
 import { StatCard } from '@/components/StatCard';
 import { ActivityChart } from '@/components/ActivityChart';
 import { mockChatGroups } from '@/lib/mockData';
@@ -19,9 +19,7 @@ export default function Dashboard() {
   const stats = useMemo(() => {
     const totalMessages = mockChatGroups.reduce((acc, g) => acc + g.todayMessages, 0);
     const totalMembers = mockChatGroups.reduce((acc, g) => acc + g.memberCount, 0);
-    // 计算总发言人数（需要从报告数据中获取，这里用成员数的平均参与率估算）
     const totalActiveSpeakers = Math.round(mockChatGroups.reduce((acc, g) => {
-      // 估算每个群的活跃发言人数为成员数的60%
       return acc + Math.floor(g.memberCount * 0.6);
     }, 0));
 
@@ -47,15 +45,19 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">数据总览</h1>
-          <p className="text-muted-foreground mt-1">企业群聊数据分析</p>
+          <div className="flex items-center gap-2.5 mb-1">
+            <div className="p-1.5 rounded-lg bg-primary/10">
+              <Sparkles className="h-4 w-4 text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold">数据总览</h1>
+          </div>
+          <p className="text-muted-foreground">企业群聊数据分析与洞察</p>
         </div>
         <DateRangeFilter value={dateRange} onChange={setDateRange} />
       </div>
 
-
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           title="群聊总数"
           value={mockChatGroups.length}
@@ -91,36 +93,42 @@ export default function Dashboard() {
         </div>
 
         {/* Group Rankings */}
-        <div className="glass-card rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">消息数排行</h3>
-            <Button variant="ghost" size="sm" asChild className="gap-1">
+        <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h3 className="text-lg font-semibold">消息排行</h3>
+              <p className="text-sm text-muted-foreground mt-0.5">今日活跃群聊</p>
+            </div>
+            <Button variant="ghost" size="sm" asChild className="gap-1 text-primary hover:text-primary hover:bg-primary/10">
               <Link to="/groups">
-                查看全部 <ArrowRight className="h-4 w-4" />
+                全部 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {sortedGroups.slice(0, 6).map((group, index) => (
               <Link
                 key={group.id}
                 to={`/groups/${group.id}`}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-all duration-200 group"
               >
                 <span className={cn(
-                  'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium',
-                  index < 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-110',
+                  index === 0 && 'bg-gradient-to-br from-amber-400 to-amber-500 text-white shadow-sm',
+                  index === 1 && 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-sm',
+                  index === 2 && 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-sm',
+                  index > 2 && 'bg-muted text-muted-foreground'
                 )}>
                   {index + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{group.name}</p>
+                  <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{group.name}</p>
                   <p className="text-xs text-muted-foreground">{group.memberCount} 成员</p>
                 </div>
                 <div className="text-right">
-                  <div className="flex items-center gap-1">
-                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-lg font-semibold">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    <span className="text-lg font-bold text-foreground">
                       {group.todayMessages}
                     </span>
                   </div>

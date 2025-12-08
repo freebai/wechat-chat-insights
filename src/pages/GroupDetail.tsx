@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, Users, Calendar, Info } from 'lucide-react';
+import { ChevronLeft, Users, Calendar, Info, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockChatGroups, generateMockReports } from '@/lib/mockData';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
@@ -52,7 +52,12 @@ export default function GroupDetail() {
   if (!group || !latestReport) {
     return (
       <div className="container max-w-7xl mx-auto px-6 py-8">
-        <p className="text-muted-foreground">群聊不存在</p>
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+            <BarChart3 className="h-8 w-8 text-muted-foreground/50" />
+          </div>
+          <p className="text-muted-foreground font-medium">群聊不存在</p>
+        </div>
       </div>
     );
   }
@@ -76,20 +81,24 @@ export default function GroupDetail() {
     <div className="container max-w-7xl mx-auto px-6 py-8">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" asChild>
+        <Button variant="outline" size="icon" asChild className="rounded-xl">
           <Link to="/groups">
             <ChevronLeft className="h-5 w-5" />
           </Link>
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">{group.name}</h1>
-          <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
+          <div className="flex items-center gap-4 mt-1.5">
+            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <div className="p-1 rounded bg-blue-50 text-blue-600">
+                <Users className="h-3.5 w-3.5" />
+              </div>
               {group.memberCount} 成员
             </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
+            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <div className="p-1 rounded bg-purple-50 text-purple-600">
+                <Calendar className="h-3.5 w-3.5" />
+              </div>
               创建于 {group.createdAt}
             </span>
           </div>
@@ -99,9 +108,11 @@ export default function GroupDetail() {
 
       {/* Excluded from Analysis Notice */}
       {group.isExcludedFromScoring && (
-        <div className="mb-6 p-4 rounded-xl flex items-center gap-3 bg-blue-500/10 border border-blue-500/30">
-          <Info className="h-5 w-5 text-blue-400 shrink-0" />
-          <p className="text-sm text-blue-400">
+        <div className="mb-6 p-4 rounded-xl flex items-center gap-3 bg-blue-50 border border-blue-200">
+          <div className="p-2 rounded-lg bg-blue-100">
+            <Info className="h-4 w-4 text-blue-600" />
+          </div>
+          <p className="text-sm text-blue-700">
             此群聊已配置为不参与分析，但基础指标仍正常统计。
           </p>
         </div>
@@ -113,10 +124,10 @@ export default function GroupDetail() {
       </div>
 
       {/* Base Metrics - Full Width */}
-      <div className="glass-card rounded-xl p-5 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">基础指标</h3>
-          <span className="text-sm text-muted-foreground">点击指标查看趋势</span>
+      <div className="bg-card rounded-xl p-6 border border-border shadow-sm mb-6">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="section-title text-lg font-semibold !mb-0">基础指标</h3>
+          <span className="text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">点击指标查看趋势</span>
         </div>
         <BaseMetricsDisplay
           totalMessages={latestReport.baseMetrics.totalMessages}
