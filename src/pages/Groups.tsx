@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Users, MessageSquare, Clock, ChevronLeft, ChevronRight, FolderOpen } from 'lucide-react';
+import { Search, Users, Clock, ChevronLeft, ChevronRight, FolderOpen } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { mockChatGroups } from '@/lib/mockData';
@@ -64,20 +64,22 @@ export default function Groups() {
               <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">群聊名称</th>
               <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">群主</th>
               <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">成员数</th>
-              <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">今日消息</th>
-              <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">最后分析</th>
+              <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">最近一次分析时间</th>
               <th className="text-right py-4 px-6 text-sm font-semibold text-foreground">操作</th>
             </tr>
           </thead>
           <tbody>
             {paginatedGroups.map((group, index) => (
-              <tr 
-                key={group.id} 
+              <tr
+                key={group.id}
                 className="border-b border-border/50 hover:bg-muted/30 transition-colors animate-slide-up"
                 style={{ animationDelay: `${index * 30}ms` }}
               >
                 <td className="py-4 px-6">
                   <span className="font-medium">{group.name}</span>
+                  {group.isExcludedFromScoring && (
+                    <span className="ml-2 px-2 py-0.5 text-xs bg-slate-100 text-slate-600 rounded-full">不参与分析</span>
+                  )}
                 </td>
                 <td className="py-4 px-6 text-sm text-muted-foreground">
                   {group.owner || '--'}
@@ -88,14 +90,6 @@ export default function Groups() {
                       <Users className="h-3.5 w-3.5" />
                     </div>
                     <span className="font-medium">{group.memberCount}</span>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="p-1.5 rounded-md bg-emerald-50 text-emerald-600">
-                      <MessageSquare className="h-3.5 w-3.5" />
-                    </div>
-                    <span className="font-medium">{group.todayMessages}</span>
                   </div>
                 </td>
                 <td className="py-4 px-6">

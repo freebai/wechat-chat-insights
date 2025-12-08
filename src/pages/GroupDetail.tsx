@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, Users, Calendar, Info, BarChart3 } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Users, Calendar, Info, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockChatGroups, generateMockReports } from '@/lib/mockData';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
@@ -10,9 +10,58 @@ import { MessageTypeChart } from '@/components/MessageTypeChart';
 import { BaseMetricsDisplay, MetricKey } from '@/components/BaseMetricsDisplay';
 import { MetricTrendChart } from '@/components/MetricTrendChart';
 
+// 报告列表上下文类型
+interface ReportListItem {
+  id: string;
+  groupId: string;
+  groupName: string;
+  date: string;
+}
+
 export default function GroupDetail() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const group = mockChatGroups.find(g => g.id === id);
+
+  // 检查是否从分析记录页面进入
+  const fromReports = searchParams.get('fromReports') === 'true';
+  const reportId = searchParams.get('reportId');
+
+  // 从 sessionStorage 获取报告列表上下文
+  const [reportListContext, setReportListContext] = useState<ReportListItem[]>([]);
+  const [currentReportIndex, setCurrentReportIndex] = useState(-1);
+
+  useEffect(() => {
+    if (fromReports && reportId) {
+      const stored = sessionStorage.getItem('reportListContext');
+      if (stored) {
+        try {
+          const list: ReportListItem[] = JSON.parse(stored);
+          setReportListContext(list);
+          const index = list.findIndex(r => r.id === reportId);
+          setCurrentReportIndex(index);
+        } catch {
+          // 解析失败，忽略
+        }
+      }
+    }
+  }, [fromReports, reportId]);
+
+  // 切换到上一个/下一个报告
+  const handlePrevReport = () => {
+    if (currentReportIndex > 0) {
+      const prevReport = reportListContext[currentReportIndex - 1];
+      navigate(`/groups/${prevReport.groupId}?reportId=${prevReport.id}&fromReports=true`);
+    }
+  };
+
+  const handleNextReport = () => {
+    if (currentReportIndex < reportListContext.length - 1) {
+      const nextReport = reportListContext[currentReportIndex + 1];
+      navigate(`/groups/${nextReport.groupId}?reportId=${nextReport.id}&fromReports=true`);
+    }
+  };
 
   const [dateRange, setDateRange] = useState<DateRange>(() => {
     const to = new Date();
@@ -47,9 +96,18 @@ export default function GroupDetail() {
     });
   }, [reports, dateRange]);
 
-  const latestReport = filteredReports[0];
+  // 获取当前展示的报告
+  const currentReport = useMemo(() => {
+    if (reportId) {
+      // 如果有指定 reportId，尝试匹配
+      const found = reports.find(r => r.id === reportId);
+      if (found) return found;
+    }
+    // 默认返回筛选后的第一个
+    return filteredReports[0];
+  }, [reportId, reports, filteredReports]);
 
-  if (!group || !latestReport) {
+  if (!group || !currentReport) {
     return (
       <div className="container max-w-7xl mx-auto px-6 py-8">
         <div className="flex flex-col items-center justify-center py-16">
@@ -77,12 +135,16 @@ export default function GroupDetail() {
     };
   }).reverse();
 
+  // 当前报告在列表中的信息
+  const currentListItem = reportListContext[currentReportIndex];
+  const showNavigator = fromReports && reportListContext.length > 0 && currentReportIndex >= 0;
+
   return (
     <div className="container max-w-7xl mx-auto px-6 py-8">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button variant="outline" size="icon" asChild className="rounded-xl">
-          <Link to="/groups">
+          <Link to={fromReports ? "/reports" : "/groups"}>
             <ChevronLeft className="h-5 w-5" />
           </Link>
         </Button>
@@ -118,9 +180,43 @@ export default function GroupDetail() {
         </div>
       )}
 
+      {/* Report Navigation - 只有从分析记录页面进入时才显示 */}
+      {showNavigator && (
+        <div className="mb-6 flex items-center justify-between bg-card rounded-xl p-4 border border-border shadow-sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrevReport}
+            disabled={currentReportIndex <= 0}
+            className="gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            上一个记录
+          </Button>
+          <div className="text-center">
+            <div className="text-sm font-medium">
+              {currentListItem?.groupName} · {currentListItem?.date}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              ({currentReportIndex + 1} / {reportListContext.length})
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextReport}
+            disabled={currentReportIndex >= reportListContext.length - 1}
+            className="gap-1"
+          >
+            下一个记录
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
       {/* AI Analysis Panel */}
       <div className="mb-6">
-        <AIAnalysisPanel insight={latestReport.aiInsight} date={latestReport.date} />
+        <AIAnalysisPanel insight={currentReport.aiInsight} date={currentReport.date} />
       </div>
 
       {/* Base Metrics - Full Width */}
@@ -130,10 +226,10 @@ export default function GroupDetail() {
           <span className="text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">点击指标查看趋势</span>
         </div>
         <BaseMetricsDisplay
-          totalMessages={latestReport.baseMetrics.totalMessages}
-          totalMembers={latestReport.baseMetrics.totalMembers}
-          activeSpeakers={latestReport.baseMetrics.activeSpeakers}
-          top20Percentage={latestReport.baseMetrics.top20Percentage}
+          totalMessages={currentReport.baseMetrics.totalMessages}
+          totalMembers={currentReport.baseMetrics.totalMembers}
+          activeSpeakers={currentReport.baseMetrics.activeSpeakers}
+          top20Percentage={currentReport.baseMetrics.top20Percentage}
           selectedMetric={selectedMetric}
           onMetricSelect={setSelectedMetric}
         />
@@ -146,8 +242,8 @@ export default function GroupDetail() {
 
       {/* Member Ranking + Message Type */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MemberRanking members={latestReport.memberStats} />
-        <MessageTypeChart data={latestReport.messageTypes} />
+        <MemberRanking members={currentReport.memberStats} />
+        <MessageTypeChart data={currentReport.messageTypes} />
       </div>
     </div>
   );

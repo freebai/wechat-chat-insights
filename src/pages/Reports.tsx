@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Calendar, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileText, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { mockChatGroups, generateMockReports } from '@/lib/mockData';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -116,10 +116,20 @@ export default function Reports() {
                 </td>
                 <td className="py-4 px-6 text-right">
                   <Link
-                    to={`/groups/${report.groupId}`}
-                    className="text-primary hover:text-primary/80 transition-colors"
+                    to={`/groups/${report.groupId}?reportId=${report.id}&fromReports=true`}
+                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg transition-colors"
+                    onClick={() => {
+                      // 存储当前筛选后的报告列表供详情页切换使用
+                      const reportListData = filteredReports.map(r => ({
+                        id: r.id,
+                        groupId: r.groupId,
+                        groupName: r.groupName,
+                        date: r.date,
+                      }));
+                      sessionStorage.setItem('reportListContext', JSON.stringify(reportListData));
+                    }}
                   >
-                    <ExternalLink className="h-4 w-4" />
+                    查看详情
                   </Link>
                 </td>
               </tr>

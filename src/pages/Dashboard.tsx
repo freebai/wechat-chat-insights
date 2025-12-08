@@ -71,10 +71,9 @@ export default function Dashboard() {
           delay={50}
         />
         <StatCard
-          title="今日消息"
+          title="总消息数"
           value={stats.totalMessages}
           icon={TrendingUp}
-          trend={{ value: 12.5, isPositive: true }}
           delay={100}
         />
         <StatCard
