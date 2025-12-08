@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Users, TrendingUp, AlertTriangle, ArrowRight } from 'lucide-react';
+import { MessageSquare, Users, TrendingUp, ArrowRight } from 'lucide-react';
 import { StatCard } from '@/components/StatCard';
 import { ActivityChart } from '@/components/ActivityChart';
-import { mockChatGroups, generateMockReports, getScoreLevel } from '@/lib/mockData';
-import { ScoreRing } from '@/components/common/ScoreRing';
+import { mockChatGroups } from '@/lib/mockData';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -20,10 +19,13 @@ export default function Dashboard() {
   const stats = useMemo(() => {
     const totalMessages = mockChatGroups.reduce((acc, g) => acc + g.todayMessages, 0);
     const totalMembers = mockChatGroups.reduce((acc, g) => acc + g.memberCount, 0);
-    const avgScore = Math.round(mockChatGroups.reduce((acc, g) => acc + g.latestScore, 0) / mockChatGroups.length);
-    const warningGroups = mockChatGroups.filter(g => g.status === 'warning' || g.status === 'critical');
-    
-    return { totalMessages, totalMembers, avgScore, warningGroups };
+    // 计算总发言人数（需要从报告数据中获取，这里用成员数的平均参与率估算）
+    const totalActiveSpeakers = Math.round(mockChatGroups.reduce((acc, g) => {
+      // 估算每个群的活跃发言人数为成员数的60%
+      return acc + Math.floor(g.memberCount * 0.6);
+    }, 0));
+
+    return { totalMessages, totalMembers, totalActiveSpeakers };
   }, []);
 
   const trendData = useMemo(() => {
@@ -38,7 +40,7 @@ export default function Dashboard() {
     });
   }, [dateRange]);
 
-  const sortedGroups = [...mockChatGroups].sort((a, b) => b.latestScore - a.latestScore);
+  const sortedGroups = [...mockChatGroups].sort((a, b) => b.todayMessages - a.todayMessages);
 
   return (
     <div className="container max-w-7xl mx-auto px-6 py-8">
@@ -46,30 +48,11 @@ export default function Dashboard() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold">数据总览</h1>
-          <p className="text-muted-foreground mt-1">企业群聊健康状态监控</p>
+          <p className="text-muted-foreground mt-1">企业群聊数据分析</p>
         </div>
         <DateRangeFilter value={dateRange} onChange={setDateRange} />
       </div>
 
-      {/* Warning Banner */}
-      {stats.warningGroups.length > 0 && (
-        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-xl flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            <div>
-              <p className="font-medium text-destructive">
-                {stats.warningGroups.length} 个群聊健康分较低
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {stats.warningGroups.map(g => g.name).join('、')}
-              </p>
-            </div>
-          </div>
-          <Button variant="destructive" size="sm" asChild>
-            <Link to="/groups">查看详情</Link>
-          </Button>
-        </div>
-      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -92,15 +75,12 @@ export default function Dashboard() {
           trend={{ value: 12.5, isPositive: true }}
           delay={100}
         />
-        <div className="glass-card rounded-xl p-6 animate-fade-up" style={{ animationDelay: '150ms' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">平均健康分</p>
-              <p className="text-3xl font-semibold mt-2">{stats.avgScore}</p>
-            </div>
-            <ScoreRing score={stats.avgScore} size="sm" />
-          </div>
-        </div>
+        <StatCard
+          title="发言人数"
+          value={stats.totalActiveSpeakers}
+          icon={Users}
+          delay={150}
+        />
       </div>
 
       {/* Main Content */}
@@ -113,7 +93,7 @@ export default function Dashboard() {
         {/* Group Rankings */}
         <div className="glass-card rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">群聊健康排行</h3>
+            <h3 className="text-lg font-semibold">消息数排行</h3>
             <Button variant="ghost" size="sm" asChild className="gap-1">
               <Link to="/groups">
                 查看全部 <ArrowRight className="h-4 w-4" />
@@ -121,32 +101,32 @@ export default function Dashboard() {
             </Button>
           </div>
           <div className="space-y-3">
-            {sortedGroups.slice(0, 6).map((group, index) => {
-              const level = getScoreLevel(group.latestScore);
-              return (
-                <Link
-                  key={group.id}
-                  to={`/groups/${group.id}`}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <span className={cn(
-                    'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium',
-                    index < 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                  )}>
-                    {index + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{group.name}</p>
-                    <p className="text-xs text-muted-foreground">{group.memberCount} 成员</p>
-                  </div>
-                  <div className="text-right">
-                    <span className={cn('text-lg font-semibold', level.color)}>
-                      {group.latestScore}
+            {sortedGroups.slice(0, 6).map((group, index) => (
+              <Link
+                key={group.id}
+                to={`/groups/${group.id}`}
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <span className={cn(
+                  'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium',
+                  index < 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                )}>
+                  {index + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{group.name}</p>
+                  <p className="text-xs text-muted-foreground">{group.memberCount} 成员</p>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center gap-1">
+                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-lg font-semibold">
+                      {group.todayMessages}
                     </span>
                   </div>
-                </Link>
-              );
-            })}
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </div>

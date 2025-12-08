@@ -1,11 +1,10 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Calendar, TrendingUp, TrendingDown, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
-import { mockChatGroups, generateMockReports, getScoreLevel } from '@/lib/mockData';
+import { FileText, Calendar, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { mockChatGroups, generateMockReports } from '@/lib/mockData';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 10;
 
@@ -90,7 +89,6 @@ export default function Reports() {
             <tr className="border-b border-border">
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">日期</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">群聊</th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">健康分</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">消息数</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">发言人数</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">摘要</th>
@@ -98,55 +96,34 @@ export default function Reports() {
             </tr>
           </thead>
           <tbody>
-            {paginatedReports.map((report, index) => {
-              const level = getScoreLevel(report.overallScore);
-              const globalIndex = (currentPage - 1) * PAGE_SIZE + index;
-              const prevReport = filteredReports[globalIndex + 1];
-              const scoreDiff = prevReport ? report.overallScore - prevReport.overallScore : 0;
-
-              return (
-                <tr key={report.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{report.date}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className="text-sm font-medium">{report.groupName}</span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
-                      <span className={cn('font-semibold', level.color)}>{report.overallScore}</span>
-                      {scoreDiff !== 0 && (
-                        <span className={cn(
-                          'flex items-center text-xs',
-                          scoreDiff > 0 ? 'text-primary' : 'text-destructive'
-                        )}>
-                          {scoreDiff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                          {Math.abs(scoreDiff)}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-4 px-6 text-sm">{report.messageCount}</td>
-                  <td className="py-4 px-6 text-sm">{report.baseMetrics.activeSpeakers}</td>
-                  <td className="py-4 px-6">
-                    <p className="text-sm text-muted-foreground truncate max-w-xs">
-                      {report.aiInsight.summary.slice(0, 50)}...
-                    </p>
-                  </td>
-                  <td className="py-4 px-6 text-right">
-                    <Link
-                      to={`/groups/${report.groupId}`}
-                      className="text-primary hover:text-primary/80 transition-colors"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
+            {paginatedReports.map((report) => (
+              <tr key={report.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                <td className="py-4 px-6">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{report.date}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-6">
+                  <span className="text-sm font-medium">{report.groupName}</span>
+                </td>
+                <td className="py-4 px-6 text-sm">{report.messageCount}</td>
+                <td className="py-4 px-6 text-sm">{report.baseMetrics.activeSpeakers}</td>
+                <td className="py-4 px-6">
+                  <p className="text-sm text-muted-foreground truncate max-w-xs">
+                    {report.aiInsight.summary.slice(0, 50)}...
+                  </p>
+                </td>
+                <td className="py-4 px-6 text-right">
+                  <Link
+                    to={`/groups/${report.groupId}`}
+                    className="text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Link>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
 

@@ -1,44 +1,23 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Users, MessageSquare, Clock, AlertTriangle, TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Users, MessageSquare, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { mockChatGroups, getScoreLevel } from '@/lib/mockData';
-import { cn } from '@/lib/utils';
-
-// 评分等级筛选选项
-const scoreLevelOptions = [
-  { value: 'all', label: '全部等级', min: 0, max: 100 },
-  { value: 'excellent', label: '优秀', min: 90, max: 100 },
-  { value: 'good', label: '良好', min: 70, max: 89 },
-  { value: 'average', label: '一般', min: 50, max: 69 },
-  { value: 'poor', label: '较差', min: 30, max: 49 },
-  { value: 'warning', label: '预警', min: 0, max: 29 },
-];
+import { mockChatGroups } from '@/lib/mockData';
 
 const PAGE_SIZE = 10;
 
 export default function Groups() {
   const [search, setSearch] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
 
   // 筛选逻辑
   const filteredGroups = useMemo(() => {
     return mockChatGroups.filter(group => {
       // 搜索匹配
-      const searchMatch = group.name.toLowerCase().includes(search.toLowerCase());
-
-      // 等级匹配
-      const levelOption = scoreLevelOptions.find(opt => opt.value === selectedLevel);
-      const levelMatch = levelOption
-        ? group.latestScore >= levelOption.min && group.latestScore <= levelOption.max
-        : true;
-
-      return searchMatch && levelMatch;
+      return group.name.toLowerCase().includes(search.toLowerCase());
     });
-  }, [search, selectedLevel]);
+  }, [search]);
 
   // 分页逻辑
   const totalPages = Math.ceil(filteredGroups.length / PAGE_SIZE);
@@ -53,27 +32,14 @@ export default function Groups() {
     setCurrentPage(1);
   };
 
-  const handleLevelChange = (value: string) => {
-    setSelectedLevel(value);
-    setCurrentPage(1);
-  };
-
-  const warningCount = mockChatGroups.filter(g => g.status === 'warning' || g.status === 'critical').length;
-
   return (
     <div className="container max-w-7xl mx-auto px-6 py-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold">群聊管理</h1>
-          <p className="text-muted-foreground mt-1">管理和监控所有群聊的健康状态</p>
+          <p className="text-muted-foreground mt-1">管理和查看所有群聊</p>
         </div>
-        {warningCount > 0 && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-destructive/10 text-destructive rounded-lg">
-            <AlertTriangle className="h-4 w-4" />
-            <span className="text-sm font-medium">{warningCount} 个群聊需要关注</span>
-          </div>
-        )}
       </div>
 
       {/* Filters */}
@@ -87,16 +53,6 @@ export default function Groups() {
             className="pl-10"
           />
         </div>
-        <Select value={selectedLevel} onValueChange={handleLevelChange}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="评分等级" />
-          </SelectTrigger>
-          <SelectContent>
-            {scoreLevelOptions.map(option => (
-              <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Groups Table */}
@@ -108,123 +64,47 @@ export default function Groups() {
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">群主</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">成员数</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">今日消息</th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">健康分</th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">近7天平均</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">最后分析</th>
               <th className="text-right py-4 px-6 text-sm font-medium text-muted-foreground">操作</th>
             </tr>
           </thead>
           <tbody>
-            {paginatedGroups.map((group) => {
-              const level = getScoreLevel(group.latestScore);
-              // 计算近7天平均分
-              const avgScore = group.recentScores && group.recentScores.length > 0
-                ? Math.round(group.recentScores.reduce((sum, score) => sum + score, 0) / group.recentScores.length)
-                : null;
-              // 计算分数增减
-              const scoreDiff = group.previousScore !== undefined ? group.latestScore - group.previousScore : 0;
-
-              return (
-                <tr key={group.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                  <td className="py-4 px-6">
-                    <span className="font-medium">{group.name}</span>
-                  </td>
-                  <td className="py-4 px-6 text-sm">
-                    {group.owner || '--'}
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>{group.memberCount}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2 text-sm">
-                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                      <span>{group.todayMessages}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">
-                    {(() => {
-                      // 不参与评分的群聊
-                      if (group.isExcludedFromScoring) {
-                        return (
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-muted-foreground">--</span>
-                            <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                              不参与评分
-                            </span>
-                          </div>
-                        );
-                      }
-
-                      // 数据不足的群聊
-                      const isInsufficientData = group.riskStatus?.isNewGroup || group.riskStatus?.isMicroGroup;
-                      if (isInsufficientData) {
-                        const reasons: string[] = [];
-                        if (group.riskStatus?.isNewGroup) reasons.push('消息不足5条');
-                        if (group.riskStatus?.isMicroGroup) reasons.push('成员少于3人');
-                        const tooltipText = reasons.join('，');
-
-                        return (
-                          <div className="flex items-center gap-2" title={tooltipText}>
-                            <span className="font-semibold text-muted-foreground">--</span>
-                            <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                              数据不足
-                            </span>
-                          </div>
-                        );
-                      }
-
-                      // 正常显示健康分和增减
-                      return (
-                        <div className="flex items-center gap-2">
-                          <span className={cn('font-semibold', level.color)}>{group.latestScore}</span>
-                          {scoreDiff !== 0 && (
-                            <span className={cn(
-                              'flex items-center text-xs',
-                              scoreDiff > 0 ? 'text-primary' : 'text-destructive'
-                            )}>
-                              {scoreDiff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                              {Math.abs(scoreDiff)}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </td>
-                  <td className="py-4 px-6">
-                    {(() => {
-                      // 不参与评分或数据不足的群聊，也不显示平均分
-                      if (group.isExcludedFromScoring || group.riskStatus?.isNewGroup || group.riskStatus?.isMicroGroup) {
-                        return <span className="text-sm text-muted-foreground">--</span>;
-                      }
-
-                      // 显示近7天平均分
-                      if (avgScore !== null) {
-                        return <span className="text-sm font-medium">{avgScore}</span>;
-                      }
-
-                      return <span className="text-sm text-muted-foreground">--</span>;
-                    })()}
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>{group.lastAnalysisTime}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6 text-right">
-                    <Link
-                      to={`/groups/${group.id}`}
-                      className="text-primary hover:text-primary/80 transition-colors text-sm"
-                    >
-                      查看
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
+            {paginatedGroups.map((group) => (
+              <tr key={group.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                <td className="py-4 px-6">
+                  <span className="font-medium">{group.name}</span>
+                </td>
+                <td className="py-4 px-6 text-sm">
+                  {group.owner || '--'}
+                </td>
+                <td className="py-4 px-6">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>{group.memberCount}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-6">
+                  <div className="flex items-center gap-2 text-sm">
+                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                    <span>{group.todayMessages}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-6">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>{group.lastAnalysisTime}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-6 text-right">
+                  <Link
+                    to={`/groups/${group.id}`}
+                    className="text-primary hover:text-primary/80 transition-colors text-sm"
+                  >
+                    查看
+                  </Link>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
 
