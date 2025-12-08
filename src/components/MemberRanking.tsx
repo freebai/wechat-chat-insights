@@ -6,6 +6,13 @@ interface MemberRankingProps {
   members: MemberStats[];
 }
 
+// 成员类型配置
+const memberTypeConfig = {
+  employee: { label: '企业成员', color: 'bg-blue-100 text-blue-600' },
+  enterprise_friend: { label: '企业好友', color: 'bg-emerald-100 text-emerald-600' },
+  external_friend: { label: '非企业好友', color: 'bg-orange-100 text-orange-600' },
+};
+
 export function MemberRanking({ members }: MemberRankingProps) {
   const maxCount = Math.max(...members.map(m => m.messageCount));
 
@@ -31,8 +38,18 @@ export function MemberRanking({ members }: MemberRankingProps) {
             </span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm font-medium truncate group-hover:text-primary transition-colors">{member.name}</span>
-                <span className="text-sm font-semibold text-foreground">{member.messageCount}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-sm font-medium truncate group-hover:text-primary transition-colors">{member.name}</span>
+                  {member.memberType && (
+                    <span className={cn(
+                      "px-1.5 py-0.5 text-[10px] font-medium rounded flex-shrink-0",
+                      memberTypeConfig[member.memberType].color
+                    )}>
+                      {memberTypeConfig[member.memberType].label}
+                    </span>
+                  )}
+                </div>
+                <span className="text-sm font-semibold text-foreground flex-shrink-0 ml-2">{member.messageCount}</span>
               </div>
               <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
                 <div

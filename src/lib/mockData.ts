@@ -10,6 +10,7 @@ export interface MemberStats {
   name: string;
   messageCount: number;
   avatar?: string;
+  memberType?: 'employee' | 'enterprise_friend' | 'external_friend'; // 企业成员 | 企业好友 | 非企业好友
 }
 
 export interface HourlyActivity {
@@ -221,14 +222,14 @@ export const mockStats = {
 };
 
 export const mockMemberStats: MemberStats[] = [
-  { name: '张经理', messageCount: 1256 },
-  { name: '李工程师', messageCount: 987 },
-  { name: '王产品', messageCount: 856 },
-  { name: '刘设计', messageCount: 743 },
-  { name: '陈运营', messageCount: 698 },
-  { name: '赵销售', messageCount: 621 },
-  { name: '周客服', messageCount: 589 },
-  { name: '吴财务', messageCount: 456 },
+  { name: '张经理', messageCount: 1256, memberType: 'employee' },
+  { name: '李工程师', messageCount: 987, memberType: 'employee' },
+  { name: '王产品', messageCount: 856, memberType: 'enterprise_friend' },
+  { name: '刘设计', messageCount: 743, memberType: 'external_friend' },
+  { name: '陈运营', messageCount: 698, memberType: 'employee' },
+  { name: '赵销售', messageCount: 621, memberType: 'enterprise_friend' },
+  { name: '周客服', messageCount: 589, memberType: 'external_friend' },
+  { name: '吴财务', messageCount: 456, memberType: 'employee' },
 ];
 
 export const mockHourlyActivity: HourlyActivity[] = Array.from({ length: 24 }, (_, i) => ({
@@ -268,10 +269,33 @@ export const mockAIInsight: AIInsight = {
 };
 
 export const mockMessageTypes = [
-  { type: '文本消息', count: 9834, percentage: 76.5 },
-  { type: '图片', count: 1567, percentage: 12.2 },
-  { type: '文件', count: 892, percentage: 6.9 },
-  { type: '链接', count: 554, percentage: 4.4 },
+  { type: '文本', count: 9834, percentage: 65.2 },
+  { type: '语音', count: 1567, percentage: 10.4 },
+  { type: '图片', count: 1245, percentage: 8.3 },
+  { type: '撤回', count: 456, percentage: 3.0 },
+  { type: '同意', count: 234, percentage: 1.6 },
+  { type: '不同意', count: 89, percentage: 0.6 },
+  { type: '视频', count: 321, percentage: 2.1 },
+  { type: '名片', count: 156, percentage: 1.0 },
+  { type: '位置', count: 78, percentage: 0.5 },
+  { type: '表情', count: 289, percentage: 1.9 },
+  { type: '文件', count: 198, percentage: 1.3 },
+  { type: '链接', count: 167, percentage: 1.1 },
+  { type: '小程序', count: 145, percentage: 1.0 },
+  { type: '会话记录', count: 67, percentage: 0.4 },
+  { type: '待办', count: 45, percentage: 0.3 },
+  { type: '投票', count: 34, percentage: 0.2 },
+  { type: '填表', count: 28, percentage: 0.2 },
+  { type: '红包', count: 56, percentage: 0.4 },
+  { type: '会议', count: 23, percentage: 0.2 },
+  { type: '在线文档', count: 19, percentage: 0.1 },
+  { type: '【图文消息】', count: 15, percentage: 0.1 },
+  { type: '日程消息', count: 12, percentage: 0.1 },
+  { type: '混合消息', count: 8, percentage: 0.05 },
+  { type: '音频存档', count: 6, percentage: 0.04 },
+  { type: '音频共享文档', count: 4, percentage: 0.03 },
+  { type: '互通红包消息', count: 3, percentage: 0.02 },
+  { type: 'MarkDown', count: 2, percentage: 0.01 },
 ];
 
 // Mock chat groups - v2.0 六维评分

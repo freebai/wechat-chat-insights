@@ -10,10 +10,10 @@ import { cn } from '@/lib/utils';
 
 export default function Dashboard() {
   const [dateRange, setDateRange] = useState<DateRange>(() => {
-    const to = new Date();
-    const from = new Date();
-    from.setDate(from.getDate() - 7);
-    return { from, to };
+    // 默认选择昨日
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return { from: yesterday, to: yesterday };
   });
 
   const stats = useMemo(() => {
@@ -27,9 +27,18 @@ export default function Dashboard() {
   }, []);
 
   const trendData = useMemo(() => {
-    const days = Math.round((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24));
+    // 消息趋势最少展示7天数据
+    const minDays = 7;
+    const days = Math.max(diffDays, minDays - 1);
+
+    // 以选择的结束日期为终点，往前推算
+    const endDate = new Date(dateRange.to);
+    const startDate = new Date(endDate);
+    startDate.setDate(startDate.getDate() - days);
+
     return Array.from({ length: days + 1 }, (_, i) => {
-      const date = new Date(dateRange.from);
+      const date = new Date(startDate);
       date.setDate(date.getDate() + i);
       return {
         date: `${date.getMonth() + 1}/${date.getDate()}`,

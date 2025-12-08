@@ -64,10 +64,10 @@ export default function GroupDetail() {
   };
 
   const [dateRange, setDateRange] = useState<DateRange>(() => {
-    const to = new Date();
-    const from = new Date();
-    from.setDate(from.getDate() - 7);
-    return { from, to };
+    // 默认选择昨日
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return { from: yesterday, to: yesterday };
   });
 
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>('totalMessages');
@@ -111,12 +111,23 @@ export default function GroupDetail() {
     return filteredReports.map(r => r.date).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
   }, [filteredReports]);
 
-  // 当筛选条件变化时，重置选中日期为最新
+  // 当筛选条件变化时，重置选中日期为昨日
   useEffect(() => {
     if (!fromReports && availableAnalysisDates.length > 0) {
-      setSelectedAnalysisDate(availableAnalysisDates[0]);
+      // 获取昨日日期字符串
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      // 如果昨日在可用日期中，选择昨日；否则设为 null（展示空状态）
+      if (availableAnalysisDates.includes(yesterdayStr)) {
+        setSelectedAnalysisDate(yesterdayStr);
+      } else {
+        setSelectedAnalysisDate(null);
+      }
     }
   }, [fromReports, availableAnalysisDates]);
+
 
   // 获取当前展示的报告
   const currentReport = useMemo(() => {
@@ -130,11 +141,22 @@ export default function GroupDetail() {
       const found = filteredReports.find(r => r.date === selectedAnalysisDate);
       if (found) return found;
     }
-    // 默认返回筛选后的第一个
-    return filteredReports[0];
+    // 默认返回筛选后的第一个（用于基础指标展示）
+    return filteredReports[0] || reports[0];
   }, [reportId, reports, filteredReports, fromReports, selectedAnalysisDate]);
 
-  if (!group || !currentReport) {
+  // 用于AI分析的报告（只有选择日期时才有）
+  const aiAnalysisReport = useMemo(() => {
+    if (fromReports && reportId) {
+      return reports.find(r => r.id === reportId);
+    }
+    if (!fromReports && selectedAnalysisDate) {
+      return filteredReports.find(r => r.date === selectedAnalysisDate);
+    }
+    return undefined;
+  }, [fromReports, reportId, selectedAnalysisDate, reports, filteredReports]);
+
+  if (!group) {
     return (
       <div className="container max-w-7xl mx-auto px-6 py-8">
         <div className="flex flex-col items-center justify-center py-16">
@@ -245,41 +267,68 @@ export default function GroupDetail() {
 
       {/* AI Analysis Panel */}
       <div className="mb-6">
-        <AIAnalysisPanel
-          insight={currentReport.aiInsight}
-          date={currentReport.date}
-          showDatePicker={!fromReports}
-          availableDates={availableAnalysisDates}
-          onDateChange={setSelectedAnalysisDate}
-        />
+        {(() => {
+          // 判断群是否参与分析以及是否满足分析门槛
+          const isExcluded = group.isExcludedFromScoring;
+          const isInsufficient = group.riskStatus?.isNewGroup || group.riskStatus?.isMicroGroup;
+          const hasNoData = !fromReports && !aiAnalysisReport;
+
+          // 确定空状态原因
+          let emptyReason: 'excluded' | 'insufficient' | 'no_data' = 'no_data';
+          if (isExcluded) {
+            emptyReason = 'excluded';
+          } else if (isInsufficient) {
+            emptyReason = 'insufficient';
+          }
+
+          const shouldShowEmpty = isExcluded || isInsufficient || hasNoData;
+
+          return (
+            <AIAnalysisPanel
+              insight={shouldShowEmpty ? undefined : aiAnalysisReport?.aiInsight}
+              date={aiAnalysisReport?.date || selectedAnalysisDate || undefined}
+              showDatePicker={!fromReports}
+              availableDates={availableAnalysisDates}
+              onDateChange={setSelectedAnalysisDate}
+              isEmpty={shouldShowEmpty}
+              emptyReason={emptyReason}
+            />
+          );
+        })()}
       </div>
 
       {/* Base Metrics - Full Width */}
-      <div className="bg-card rounded-xl p-6 border border-border shadow-sm mb-6">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="section-title text-lg font-semibold !mb-0">基础指标</h3>
-          <span className="text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">点击指标查看趋势</span>
+      {currentReport && (
+        <div className="bg-card rounded-xl p-6 border border-border shadow-sm mb-6">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="section-title text-lg font-semibold !mb-0">基础指标</h3>
+            <span className="text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">点击指标查看趋势</span>
+          </div>
+          <BaseMetricsDisplay
+            totalMessages={currentReport.baseMetrics.totalMessages}
+            totalMembers={currentReport.baseMetrics.totalMembers}
+            activeSpeakers={currentReport.baseMetrics.activeSpeakers}
+            top20Percentage={currentReport.baseMetrics.top20Percentage}
+            selectedMetric={selectedMetric}
+            onMetricSelect={setSelectedMetric}
+          />
         </div>
-        <BaseMetricsDisplay
-          totalMessages={currentReport.baseMetrics.totalMessages}
-          totalMembers={currentReport.baseMetrics.totalMembers}
-          activeSpeakers={currentReport.baseMetrics.activeSpeakers}
-          top20Percentage={currentReport.baseMetrics.top20Percentage}
-          selectedMetric={selectedMetric}
-          onMetricSelect={setSelectedMetric}
-        />
-      </div>
+      )}
 
       {/* Metric Trend Chart */}
-      <div className="mb-6">
-        <MetricTrendChart data={metricTrendData} selectedMetric={selectedMetric} />
-      </div>
+      {currentReport && (
+        <div className="mb-6">
+          <MetricTrendChart data={metricTrendData} selectedMetric={selectedMetric} />
+        </div>
+      )}
 
       {/* Member Ranking + Message Type */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MemberRanking members={currentReport.memberStats} />
-        <MessageTypeChart data={currentReport.messageTypes} />
-      </div>
+      {currentReport && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <MemberRanking members={currentReport.memberStats} />
+          <MessageTypeChart data={currentReport.messageTypes} />
+        </div>
+      )}
     </div>
   );
 }

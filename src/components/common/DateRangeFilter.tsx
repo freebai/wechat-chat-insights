@@ -34,13 +34,41 @@ export function DateRangeFilter({ value, onChange, className }: DateRangeFilterP
   const handlePreset = (days: number) => {
     const to = new Date();
     const from = new Date();
-    from.setDate(from.getDate() - days);
+    if (days === 1) {
+      // "昨日"特殊处理：from 和 to 都设为昨天
+      from.setDate(from.getDate() - 1);
+      to.setDate(to.getDate() - 1);
+    } else {
+      // 其他预设：from 往前推 days 天，to 为今天
+      from.setDate(from.getDate() - days);
+    }
     onChange({ from, to });
   };
 
   const getActivePreset = () => {
-    const diffDays = Math.round((value.to.getTime() - value.from.getTime()) / (1000 * 60 * 60 * 24));
-    return presets.find(p => p.days === diffDays)?.label;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const fromDate = new Date(value.from);
+    fromDate.setHours(0, 0, 0, 0);
+    const toDate = new Date(value.to);
+    toDate.setHours(0, 0, 0, 0);
+
+    // 检查是否是"昨日"：from 和 to 都是昨天
+    if (fromDate.getTime() === yesterday.getTime() && toDate.getTime() === yesterday.getTime()) {
+      return '昨日';
+    }
+
+    // 检查其他预设：to 是今天，计算 from 和 to 的差值
+    if (toDate.getTime() === today.getTime()) {
+      const diffDays = Math.round((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
+      const preset = presets.find(p => p.days === diffDays && p.days !== 1);
+      if (preset) return preset.label;
+    }
+
+    return undefined;
   };
 
   return (
