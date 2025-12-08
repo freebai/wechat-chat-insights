@@ -1,8 +1,8 @@
-import { LucideIcon, MessageSquare, Users, UserCheck, PieChart, Clock, Timer } from 'lucide-react';
+import { LucideIcon, MessageSquare, Users, UserCheck, PieChart, Percent, BarChart3 } from 'lucide-react';
 import { InfoTooltip } from './common/InfoTooltip';
 import { cn } from '@/lib/utils';
 
-export type MetricKey = 'totalMessages' | 'activeSpeakers' | 'activeHours' | 'top20Percentage' | 'medianResponseInterval' | 'totalMembers';
+export type MetricKey = 'totalMessages' | 'activeSpeakers' | 'participationRate' | 'top20Percentage' | 'avgMessagesPerSpeaker' | 'totalMembers';
 
 interface MetricCardProps {
     title: string;
@@ -47,10 +47,7 @@ interface BaseMetricsDisplayProps {
     totalMessages: number;
     totalMembers: number;
     activeSpeakers: number;
-    activeHours: number;
-    totalHours?: number;
     top20Percentage: number;
-    medianResponseInterval?: number;
     selectedMetric?: MetricKey;
     onMetricSelect?: (metric: MetricKey) => void;
 }
@@ -59,22 +56,15 @@ export function BaseMetricsDisplay({
     totalMessages,
     totalMembers,
     activeSpeakers,
-    activeHours,
-    totalHours = 12,
     top20Percentage,
-    medianResponseInterval,
     selectedMetric,
     onMetricSelect,
 }: BaseMetricsDisplayProps) {
-    // 格式化响应间隔
-    const formatResponseInterval = (seconds?: number) => {
-        if (!seconds) return { value: '-', unit: '' };
-        if (seconds < 60) return { value: seconds.toFixed(0), unit: '秒' };
-        if (seconds < 3600) return { value: (seconds / 60).toFixed(1), unit: '分钟' };
-        return { value: (seconds / 3600).toFixed(1), unit: '小时' };
-    };
+    // 计算参与度（发言人数 / 群成员总数）
+    const participationRate = totalMembers > 0 ? (activeSpeakers / totalMembers) * 100 : 0;
 
-    const responseInterval = formatResponseInterval(medianResponseInterval);
+    // 计算人均消息（总消息数 / 发言人数）
+    const avgMessagesPerSpeaker = activeSpeakers > 0 ? (totalMessages / activeSpeakers) : 0;
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -114,28 +104,28 @@ export function BaseMetricsDisplay({
                 onClick={() => onMetricSelect?.('activeSpeakers')}
             />
 
-            {/* 活跃时段数 */}
+            {/* 参与度 */}
             <MetricCard
-                title="活跃时段数"
-                value={activeHours}
-                unit="小时"
-                icon={Clock}
-                description="有消息发送的小时时段数量"
+                title="参与度"
+                value={participationRate.toFixed(1)}
+                unit="%"
+                icon={Percent}
+                description="发言人数占群成员总数的比例，反映群成员参与互动的程度"
                 color="orange"
-                isSelected={selectedMetric === 'activeHours'}
-                onClick={() => onMetricSelect?.('activeHours')}
+                isSelected={selectedMetric === 'participationRate'}
+                onClick={() => onMetricSelect?.('participationRate')}
             />
 
-            {/* 消息间隔时间中位数 */}
+            {/* 人均消息 */}
             <MetricCard
-                title="消息间隔时间中位数"
-                value={responseInterval.value}
-                unit={responseInterval.unit}
-                icon={Timer}
-                description="消息响应时间的中位数（仅计算间隔<20min的消息对）"
+                title="人均消息"
+                value={avgMessagesPerSpeaker.toFixed(1)}
+                unit="条"
+                icon={BarChart3}
+                description="平均每个发言者发送的消息数量，反映活跃用户的发言频次"
                 color="cyan"
-                isSelected={selectedMetric === 'medianResponseInterval'}
-                onClick={() => onMetricSelect?.('medianResponseInterval')}
+                isSelected={selectedMetric === 'avgMessagesPerSpeaker'}
+                onClick={() => onMetricSelect?.('avgMessagesPerSpeaker')}
             />
 
             {/* Top 20% 成员消息占比 */}

@@ -6,9 +6,9 @@ interface MetricTrendChartProps {
     date: string;
     totalMessages: number;
     activeSpeakers: number;
-    activeHours: number;
+    participationRate: number;
     top20Percentage: number;
-    medianResponseInterval: number;
+    avgMessagesPerSpeaker: number;
     totalMembers: number;
   }>;
   selectedMetric: MetricKey;
@@ -18,9 +18,9 @@ const metricConfig: Record<MetricKey, { label: string; color: string; unit: stri
   totalMessages: { label: '总消息数', color: 'hsl(var(--chart-1))', unit: '条' },
   totalMembers: { label: '群成员总数', color: 'hsl(var(--chart-2))', unit: '人' },
   activeSpeakers: { label: '发言人数', color: 'hsl(var(--chart-3))', unit: '人' },
-  activeHours: { label: '活跃时段数', color: 'hsl(var(--chart-4))', unit: '小时' },
+  participationRate: { label: '参与度', color: 'hsl(var(--chart-4))', unit: '%' },
   top20Percentage: { label: '核心成员消息占比', color: 'hsl(var(--chart-5))', unit: '%' },
-  medianResponseInterval: { label: '消息间隔时间中位数', color: 'hsl(var(--primary))', unit: '秒' },
+  avgMessagesPerSpeaker: { label: '人均消息', color: 'hsl(var(--primary))', unit: '条' },
 };
 
 export function MetricTrendChart({ data, selectedMetric }: MetricTrendChartProps) {

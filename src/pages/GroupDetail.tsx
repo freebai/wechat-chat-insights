@@ -4,7 +4,6 @@ import { ChevronLeft, Users, Calendar, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockChatGroups, generateMockReports } from '@/lib/mockData';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
-import { HourlyHeatmap } from '@/components/HourlyHeatmap';
 import { MemberRanking } from '@/components/MemberRanking';
 import { AIAnalysisPanel } from '@/components/AIAnalysisPanel';
 import { MessageTypeChart } from '@/components/MessageTypeChart';
@@ -59,15 +58,19 @@ export default function GroupDetail() {
   }
 
   // 指标趋势数据
-  const metricTrendData = trendReports.map(r => ({
-    date: r.date.slice(5),
-    totalMessages: r.baseMetrics.totalMessages,
-    activeSpeakers: r.baseMetrics.activeSpeakers,
-    activeHours: r.baseMetrics.activeHours,
-    top20Percentage: r.baseMetrics.top20Percentage,
-    medianResponseInterval: r.baseMetrics.medianResponseInterval || 0,
-    totalMembers: r.baseMetrics.totalMembers,
-  })).reverse();
+  const metricTrendData = trendReports.map(r => {
+    const participationRate = r.baseMetrics.totalMembers > 0 ? (r.baseMetrics.activeSpeakers / r.baseMetrics.totalMembers) * 100 : 0;
+    const avgMessagesPerSpeaker = r.baseMetrics.activeSpeakers > 0 ? (r.baseMetrics.totalMessages / r.baseMetrics.activeSpeakers) : 0;
+    return {
+      date: r.date.slice(5),
+      totalMessages: r.baseMetrics.totalMessages,
+      activeSpeakers: r.baseMetrics.activeSpeakers,
+      participationRate: participationRate,
+      top20Percentage: r.baseMetrics.top20Percentage,
+      avgMessagesPerSpeaker: avgMessagesPerSpeaker,
+      totalMembers: r.baseMetrics.totalMembers,
+    };
+  }).reverse();
 
   return (
     <div className="container max-w-7xl mx-auto px-6 py-8">
@@ -119,21 +122,15 @@ export default function GroupDetail() {
           totalMessages={latestReport.baseMetrics.totalMessages}
           totalMembers={latestReport.baseMetrics.totalMembers}
           activeSpeakers={latestReport.baseMetrics.activeSpeakers}
-          activeHours={latestReport.baseMetrics.activeHours}
-          totalHours={latestReport.baseMetrics.totalHours}
           top20Percentage={latestReport.baseMetrics.top20Percentage}
-          medianResponseInterval={latestReport.baseMetrics.medianResponseInterval}
           selectedMetric={selectedMetric}
           onMetricSelect={setSelectedMetric}
         />
       </div>
 
-      {/* Metric Trend Chart + Hourly Heatmap */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2">
-          <MetricTrendChart data={metricTrendData} selectedMetric={selectedMetric} />
-        </div>
-        <HourlyHeatmap data={latestReport.hourlyActivity} />
+      {/* Metric Trend Chart */}
+      <div className="mb-6">
+        <MetricTrendChart data={metricTrendData} selectedMetric={selectedMetric} />
       </div>
 
       {/* Member Ranking + Message Type */}
