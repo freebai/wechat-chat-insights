@@ -13,26 +13,37 @@ export function StatCard({ title, value, icon: Icon, trend, delay = 0 }: StatCar
   return (
     <div
       className={cn(
-        "glass-card rounded-xl p-6 animate-fade-up",
-        "hover:border-primary/30 transition-all duration-300"
+        "bg-card rounded-xl p-5 border border-border animate-fade-up relative overflow-hidden group",
+        "hover:shadow-md hover:border-primary/20 transition-all duration-300"
       )}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="text-3xl font-semibold tracking-tight">{value.toLocaleString()}</p>
+      {/* Decorative gradient */}
+      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/5 to-transparent rounded-full -mr-10 -mt-10 group-hover:scale-125 transition-transform duration-500" />
+      
+      <div className="flex items-start justify-between relative">
+        <div className="space-y-1.5">
+          <p className="text-sm text-muted-foreground font-medium">{title}</p>
+          <p className="text-3xl font-bold tracking-tight">{value.toLocaleString()}</p>
           {trend && (
-            <p className={cn(
-              "text-sm flex items-center gap-1",
-              trend.isPositive ? "text-primary" : "text-destructive"
+            <div className={cn(
+              "inline-flex items-center gap-1.5 text-sm font-medium px-2 py-0.5 rounded-full",
+              trend.isPositive 
+                ? "text-emerald-600 bg-emerald-50" 
+                : "text-red-600 bg-red-50"
             )}>
-              {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
-              <span className="text-muted-foreground ml-1">vs 上周</span>
-            </p>
+              <span className={cn(
+                "text-xs",
+                trend.isPositive ? "text-emerald-500" : "text-red-500"
+              )}>
+                {trend.isPositive ? '↑' : '↓'}
+              </span>
+              {Math.abs(trend.value)}%
+              <span className="text-muted-foreground font-normal">vs 上周</span>
+            </div>
           )}
         </div>
-        <div className="p-3 rounded-lg bg-primary/10 text-primary">
+        <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 text-primary">
           <Icon className="h-5 w-5" />
         </div>
       </div>
