@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Users, Clock, ChevronLeft, ChevronRight, FolderOpen, HelpCircle, MessageSquare, TrendingUp, TrendingDown } from 'lucide-react';
+import { Search, Users, Clock, ChevronLeft, ChevronRight, FolderOpen, HelpCircle, MessageSquare, TrendingUp, TrendingDown, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { mockChatGroups } from '@/lib/mockData';
@@ -18,12 +18,25 @@ const PAGE_SIZE = 10;
 export default function Groups() {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<'yesterdayMessages' | 'yesterdaySpeakers' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const filteredGroups = useMemo(() => {
-    return mockChatGroups.filter(group => {
+    let result = mockChatGroups.filter(group => {
       return group.name.toLowerCase().includes(search.toLowerCase());
     });
-  }, [search]);
+
+    // 应用排序
+    if (sortField) {
+      result = [...result].sort((a, b) => {
+        const aValue = a[sortField] ?? 0;
+        const bValue = b[sortField] ?? 0;
+        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+      });
+    }
+
+    return result;
+  }, [search, sortField, sortOrder]);
 
   const totalPages = Math.ceil(filteredGroups.length / PAGE_SIZE);
   const paginatedGroups = useMemo(() => {
@@ -33,6 +46,22 @@ export default function Groups() {
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
+    setCurrentPage(1);
+  };
+
+  const handleSort = (field: 'yesterdayMessages' | 'yesterdaySpeakers') => {
+    if (sortField === field) {
+      // 同一字段：切换排序方向，或取消排序
+      if (sortOrder === 'desc') {
+        setSortOrder('asc');
+      } else {
+        setSortField(null);
+      }
+    } else {
+      // 不同字段：设置新字段，默认降序
+      setSortField(field);
+      setSortOrder('desc');
+    }
     setCurrentPage(1);
   };
 
@@ -174,8 +203,32 @@ export default function Groups() {
               <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">群聊名称</th>
               <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">群主</th>
               <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">成员数</th>
-              <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">昨日消息数</th>
-              <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">昨日发言人数</th>
+              <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
+                <button
+                  onClick={() => handleSort('yesterdayMessages')}
+                  className="flex items-center gap-1 hover:text-primary transition-colors"
+                >
+                  昨日消息数
+                  {sortField === 'yesterdayMessages' ? (
+                    sortOrder === 'desc' ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />
+                  ) : (
+                    <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              </th>
+              <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
+                <button
+                  onClick={() => handleSort('yesterdaySpeakers')}
+                  className="flex items-center gap-1 hover:text-primary transition-colors"
+                >
+                  昨日发言人数
+                  {sortField === 'yesterdaySpeakers' ? (
+                    sortOrder === 'desc' ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />
+                  ) : (
+                    <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              </th>
               <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">最近一次分析时间</th>
               <th className="text-right py-4 px-6 text-sm font-semibold text-foreground">操作</th>
             </tr>
