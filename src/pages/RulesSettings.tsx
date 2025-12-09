@@ -101,7 +101,7 @@ export default function RulesSettings() {
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="exclude" id="mode-exclude" />
                       <Label htmlFor="mode-exclude" className="cursor-pointer text-sm">
-                        以下群不参与分析
+                        以下群不参与AI分析
                       </Label>
                     </div>
                   </RadioGroup>
@@ -189,7 +189,7 @@ export default function RulesSettings() {
           <div className="mt-6 flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
             <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
             <p className="text-xs text-muted-foreground">
-              不参与分析的群聊仍会正常统计基础指标，仅不生成AI分析报告。
+              不参与AI分析的群聊仍会正常统计基础指标，仅不生成AI分析报告。
             </p>
           </div>
         </div>
@@ -201,7 +201,7 @@ export default function RulesSettings() {
         onOpenChange={setDialogOpen}
         selectedIds={scoringConfig.groupIds}
         onConfirm={(ids) => setScoringConfig(prev => ({ ...prev, groupIds: ids }))}
-        title={scoringConfig.mode === 'include' ? '选择参与分析的群聊' : '选择不参与分析的群聊'}
+        title={scoringConfig.mode === 'include' ? '选择参与AI分析的群聊' : '选择不参与AI分析的群聊'}
       />
     </div>
   );

@@ -153,6 +153,11 @@ export interface ChatGroup {
   recentScores?: number[];  // 近期历史分数（用于计算平均值）
   owner?: string;  // 群主
   previousScore?: number;  // 上次分数（用于计算增减）
+  // 昨日数据
+  yesterdayMessages?: number;  // 昨日消息数
+  yesterdaySpeakers?: number;  // 昨日发言人数
+  lastWeekSameDayMessages?: number;  // 上周同日消息数（用于周环比）
+  lastWeekSameDaySpeakers?: number;  // 上周同日发言人数（用于周环比）
 }
 
 // Score level definitions
@@ -321,6 +326,10 @@ export const mockChatGroups: ChatGroup[] = [
     recentScores: [87, 85, 89, 86, 88, 87, 84],
     owner: '张经理',
     previousScore: 85,
+    yesterdayMessages: 142,
+    yesterdaySpeakers: 28,
+    lastWeekSameDayMessages: 135,
+    lastWeekSameDaySpeakers: 25,
   },
   {
     id: '2',
@@ -343,6 +352,10 @@ export const mockChatGroups: ChatGroup[] = [
     recentScores: [72, 70, 74, 71, 73, 69, 72],
     owner: '赵销售',
     previousScore: 70,
+    yesterdayMessages: 78,
+    yesterdaySpeakers: 15,
+    lastWeekSameDayMessages: 82,
+    lastWeekSameDaySpeakers: 16,
   },
   {
     id: '3',
@@ -371,6 +384,10 @@ export const mockChatGroups: ChatGroup[] = [
     recentScores: [45, 48, 42, 46, 44, 47, 43],
     owner: '周客服',
     previousScore: 48,
+    yesterdayMessages: 198,
+    yesterdaySpeakers: 12,
+    lastWeekSameDayMessages: 210,
+    lastWeekSameDaySpeakers: 14,
   },
   {
     id: '4',
@@ -393,6 +410,10 @@ export const mockChatGroups: ChatGroup[] = [
     recentScores: [91, 90, 92, 89, 91, 93, 90],
     owner: '陈运营',
     previousScore: 90,
+    yesterdayMessages: 54,
+    yesterdaySpeakers: 11,
+    lastWeekSameDayMessages: 48,
+    lastWeekSameDaySpeakers: 10,
   },
   {
     id: '5',
@@ -415,6 +436,10 @@ export const mockChatGroups: ChatGroup[] = [
     recentScores: [28, 30, 25, 29, 27, 31, 26],
     owner: '吴财务',
     previousScore: 30,
+    yesterdayMessages: 8,
+    yesterdaySpeakers: 4,
+    lastWeekSameDayMessages: 15,
+    lastWeekSameDaySpeakers: 6,
   },
   {
     id: '6',
@@ -438,6 +463,10 @@ export const mockChatGroups: ChatGroup[] = [
     recentScores: [68, 67, 70, 66, 69, 68, 65],
     owner: 'CEO',
     previousScore: 67,
+    yesterdayMessages: 18,
+    yesterdaySpeakers: 5,
+    lastWeekSameDayMessages: 22,
+    lastWeekSameDaySpeakers: 6,
   },
   {
     id: '7',
@@ -466,6 +495,10 @@ export const mockChatGroups: ChatGroup[] = [
     recentScores: [0, 0, 0, 0, 0, 0, 0],
     owner: '李工程师',
     previousScore: 0,
+    yesterdayMessages: 2,
+    yesterdaySpeakers: 2,
+    lastWeekSameDayMessages: 0,
+    lastWeekSameDaySpeakers: 0,
   },
 ];
 

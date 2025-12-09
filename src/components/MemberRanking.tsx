@@ -22,7 +22,7 @@ export function MemberRanking({ members }: MemberRankingProps) {
         <div className="p-1.5 rounded-lg bg-amber-50">
           <Trophy className="h-4 w-4 text-amber-500" />
         </div>
-        <h3 className="text-lg font-semibold">成员活跃度排行</h3>
+        <h3 className="text-lg font-semibold">成员消息数排名</h3>
       </div>
       <div className="space-y-3">
         {members.slice(0, 8).map((member, index) => (

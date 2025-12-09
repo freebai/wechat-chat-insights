@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Users, Calendar, Info, BarChart3 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, Calendar, Info, BarChart3, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockChatGroups, generateMockReports } from '@/lib/mockData';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
@@ -9,6 +9,14 @@ import { AIAnalysisPanel } from '@/components/AIAnalysisPanel';
 import { MessageTypeChart } from '@/components/MessageTypeChart';
 import { BaseMetricsDisplay, MetricKey } from '@/components/BaseMetricsDisplay';
 import { MetricTrendChart } from '@/components/MetricTrendChart';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // 报告列表上下文类型
 interface ReportListItem {
@@ -198,7 +206,145 @@ export default function GroupDetail() {
           </Link>
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">{group.name}</h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold">{group.name}</h1>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2.5 text-xs gap-1 border-dashed text-muted-foreground hover:text-primary hover:border-primary"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" />
+                  逻辑说明
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <HelpCircle className="h-5 w-5 text-primary" />
+                    分析详情页 - 逻辑说明
+                  </DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="max-h-[60vh] pr-4">
+                  <div className="space-y-6 text-sm">
+                    {/* 入口说明 */}
+                    <section>
+                      <h3 className="font-semibold text-base mb-2 text-foreground">📋 当前入口</h3>
+                      <div className={`p-3 rounded-lg ${fromReports ? 'bg-purple-50 border border-purple-200' : 'bg-blue-50 border border-blue-200'}`}>
+                        <div className={`font-medium ${fromReports ? 'text-purple-700' : 'text-blue-700'}`}>
+                          {fromReports ? '从「分析记录」进入' : '从「群聊管理」进入'}
+                        </div>
+                        <div className={`mt-1 ${fromReports ? 'text-purple-600' : 'text-blue-600'}`}>
+                          {fromReports
+                            ? '固定查看特定日期的分析报告，可通过导航切换不同记录。'
+                            : '可自由切换日期范围，查看不同时间段的基础指标和AI分析。'}
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* 页面结构 */}
+                    <section>
+                      <h3 className="font-semibold text-base mb-3 text-foreground">🏗️ 页面结构</h3>
+                      <div className="space-y-3">
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="font-medium text-foreground">AI智能分析</div>
+                          <div className="text-muted-foreground mt-1">
+                            展示AI对群聊内容的分析结果，包括话题摘要、情感分析、关键洞察等。
+                            {fromReports
+                              ? '当前固定展示进入时指定的报告日期。'
+                              : '可通过日期选择切换查看不同日期的分析。'}
+                          </div>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="font-medium text-foreground">基础指标</div>
+                          <div className="text-muted-foreground mt-1">总消息数、成员数、发言人数、Top20%发言占比。点击指标卡片可查看对应的趋势图表。</div>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="font-medium text-foreground">指标趋势图</div>
+                          <div className="text-muted-foreground mt-1">展示选中指标近7天的变化趋势，帮助了解群聊活跃度的变化情况。</div>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="font-medium text-foreground">成员消息数排名</div>
+                          <div className="text-muted-foreground mt-1">按消息数量排序的成员列表，展示最活跃的发言者。</div>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="font-medium text-foreground">消息类型分布</div>
+                          <div className="text-muted-foreground mt-1">展示各类型消息（文本、图片、文件等）的数量占比分布。</div>
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* 入口差异说明 */}
+                    <section>
+                      <h3 className="font-semibold text-base mb-2 text-foreground">🔀 两种入口的差异</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-border">
+                              <th className="text-left py-2 px-3 font-medium text-foreground">功能项</th>
+                              <th className="text-left py-2 px-3 font-medium text-foreground">群聊管理入口</th>
+                              <th className="text-left py-2 px-3 font-medium text-foreground">分析记录入口</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-muted-foreground">
+                            <tr className="border-b border-border/50">
+                              <td className="py-2 px-3">日期选择器</td>
+                              <td className="py-2 px-3">✅ 显示，可自由切换</td>
+                              <td className="py-2 px-3">❌ 不显示</td>
+                            </tr>
+                            <tr className="border-b border-border/50">
+                              <td className="py-2 px-3">记录导航</td>
+                              <td className="py-2 px-3">❌ 不显示</td>
+                              <td className="py-2 px-3">✅ 显示上/下一个</td>
+                            </tr>
+                            <tr className="border-b border-border/50">
+                              <td className="py-2 px-3">AI分析日期</td>
+                              <td className="py-2 px-3">默认昨日，可切换</td>
+                              <td className="py-2 px-3">固定为进入时的日期</td>
+                            </tr>
+                            <tr className="border-b border-border/50">
+                              <td className="py-2 px-3">返回链接</td>
+                              <td className="py-2 px-3">返回群聊管理</td>
+                              <td className="py-2 px-3">返回分析记录</td>
+                            </tr>
+                            <tr>
+                              <td className="py-2 px-3">趋势图基准</td>
+                              <td className="py-2 px-3">基于日期选择器结束日期</td>
+                              <td className="py-2 px-3">基于当前报告日期</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+
+                    {/* 交互说明 */}
+                    <section>
+                      <h3 className="font-semibold text-base mb-2 text-foreground">🖱️ 交互说明</h3>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                        <li>基础指标卡片：点击可切换趋势图展示的指标</li>
+                        <li>成员消息数排名：展示成员类型标签</li>
+                        <li>消息类型：hover 显示详细数量</li>
+                        {fromReports && <li>记录导航：点击上/下一个切换分析记录</li>}
+                        {!fromReports && <li>AI分析日期：下拉选择查看不同日期的分析</li>}
+                      </ul>
+                    </section>
+
+                    {/* 开发注意事项 */}
+                    <section>
+                      <h3 className="font-semibold text-base mb-2 text-foreground">⚠️ 开发注意事项</h3>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                        <li>当前使用 Mock 数据，后续需对接真实 API</li>
+                        <li>需处理数据加载状态和错误状态</li>
+                        <li>从分析记录进入时，记录列表存储在 sessionStorage</li>
+                        <li>URL参数 fromReports=true 标识入口来源</li>
+                      </ul>
+                    </section>
+                  </div>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+          </div>
           <div className="flex items-center gap-4 mt-1.5">
             <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <div className="p-1 rounded bg-blue-50 text-blue-600">
@@ -226,7 +372,7 @@ export default function GroupDetail() {
             <Info className="h-4 w-4 text-blue-600" />
           </div>
           <p className="text-sm text-blue-700">
-            此群聊已配置为不参与分析，但基础指标仍正常统计。
+            此群聊已配置为不参与AI分析。
           </p>
         </div>
       )}

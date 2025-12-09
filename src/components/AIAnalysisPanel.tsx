@@ -14,7 +14,7 @@ interface AIAnalysisPanelProps {
   showDatePicker?: boolean;
   /** 是否展示空状态 */
   isEmpty?: boolean;
-  /** 空状态原因: 'excluded'=不参与分析, 'insufficient'=不满足门槛, 'no_data'=无昨日数据 */
+  /** 空状态原因: 'excluded'=不参与AI分析, 'insufficient'=不满足门槛, 'no_data'=无昨日数据 */
   emptyReason?: 'excluded' | 'insufficient' | 'no_data';
 }
 
@@ -46,16 +46,16 @@ export function AIAnalysisPanel({
   // 空状态提示配置
   const emptyStateConfig = {
     excluded: {
-      title: '此群聊不参与分析',
-      description: '该群聊已被配置为不参与 AI 智能分析，但基础指标仍正常统计。',
+      title: '此群聊不参与AI分析',
+      description: '该群聊已被配置为不参与 AI 智能分析',
     },
     insufficient: {
       title: '暂不满足分析条件',
-      description: '群聊数据量不足（消息数或成员数未达到门槛），待数据积累后将自动生成分析。',
+      description: '群聊数据量不足（消息数或成员数未达到门槛）',
     },
     no_data: {
       title: '暂无分析记录',
-      description: '该日期暂无 AI 分析记录，请选择其他日期查看，或等待系统生成分析。',
+      description: '该日期暂无 AI 分析记录，请选择其他日期查看。',
     },
   };
 

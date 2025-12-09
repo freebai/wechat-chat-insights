@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Users, Clock, ChevronLeft, ChevronRight, FolderOpen, HelpCircle } from 'lucide-react';
+import { Search, Users, Clock, ChevronLeft, ChevronRight, FolderOpen, HelpCircle, MessageSquare, TrendingUp, TrendingDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { mockChatGroups } from '@/lib/mockData';
@@ -80,15 +80,23 @@ export default function Groups() {
                       <div className="space-y-3">
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">群聊名称</div>
-                          <div className="text-muted-foreground mt-1">群聊的名称，来源于企业微信。带有"不参与分析"标签的群聊将不会进行 AI 分析。</div>
+                          <div className="text-muted-foreground mt-1">群聊的名称。带有"不参与AI分析"标签的群聊将不会进行 AI 分析。</div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">群主</div>
-                          <div className="text-muted-foreground mt-1">群聊的创建者或管理员名称，如未设置则显示"--"。</div>
+                          <div className="text-muted-foreground mt-1">群主的名称。</div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">成员数</div>
                           <div className="text-muted-foreground mt-1">当前群聊中的总成员数量，实时更新。</div>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="font-medium text-foreground">昨日消息数</div>
+                          <div className="text-muted-foreground mt-1">昨日该群聊的消息总数。旁边的变化值表示与上周同日（周环比）的对比，绿色上升表示增长，红色下降表示减少。</div>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="font-medium text-foreground">昨日发言人数</div>
+                          <div className="text-muted-foreground mt-1">昨日该群聊中发言的成员数量。旁边的变化值表示与上周同日（周环比）的对比。</div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">最近一次分析时间</div>
@@ -124,7 +132,7 @@ export default function Groups() {
                       <ul className="list-disc list-inside text-muted-foreground space-y-1">
                         <li>表格行：hover 高亮显示</li>
                         <li>查看详情：点击跳转到群聊详情页面</li>
-                        <li>不参与分析标签：灰色标签，表示该群聊已被排除在 AI 分析之外</li>
+                        <li>不参与AI分析标签：灰色标签，表示该群聊已被排除在 AI 分析之外</li>
                       </ul>
                     </section>
 
@@ -166,54 +174,96 @@ export default function Groups() {
               <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">群聊名称</th>
               <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">群主</th>
               <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">成员数</th>
+              <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">昨日消息数</th>
+              <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">昨日发言人数</th>
               <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">最近一次分析时间</th>
               <th className="text-right py-4 px-6 text-sm font-semibold text-foreground">操作</th>
             </tr>
           </thead>
           <tbody>
-            {paginatedGroups.map((group, index) => (
-              <tr
-                key={group.id}
-                className="border-b border-border/50 hover:bg-muted/30 transition-colors animate-slide-up"
-                style={{ animationDelay: `${index * 30}ms` }}
-              >
-                <td className="py-4 px-6">
-                  <span className="font-medium">{group.name}</span>
-                  {group.isExcludedFromScoring && (
-                    <span className="ml-2 px-2 py-0.5 text-xs bg-slate-100 text-slate-600 rounded-full">不参与分析</span>
-                  )}
-                </td>
-                <td className="py-4 px-6 text-sm text-muted-foreground">
-                  {group.owner || '--'}
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="p-1.5 rounded-md bg-blue-50 text-blue-600">
-                      <Users className="h-3.5 w-3.5" />
+            {paginatedGroups.map((group, index) => {
+              // 计算周环比变化
+              const messageChange = (group.yesterdayMessages ?? 0) - (group.lastWeekSameDayMessages ?? 0);
+              const speakerChange = (group.yesterdaySpeakers ?? 0) - (group.lastWeekSameDaySpeakers ?? 0);
+
+              return (
+                <tr
+                  key={group.id}
+                  className="border-b border-border/50 hover:bg-muted/30 transition-colors animate-slide-up"
+                  style={{ animationDelay: `${index * 30}ms` }}
+                >
+                  <td className="py-4 px-6">
+                    <span className="font-medium">{group.name}</span>
+                    {group.isExcludedFromScoring && (
+                      <span className="ml-2 px-2 py-0.5 text-xs bg-slate-100 text-slate-600 rounded-full">不参与AI分析</span>
+                    )}
+                  </td>
+                  <td className="py-4 px-6 text-sm text-muted-foreground">
+                    {group.owner || '--'}
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="p-1.5 rounded-md bg-blue-50 text-blue-600">
+                        <Users className="h-3.5 w-3.5" />
+                      </div>
+                      <span className="font-medium">{group.memberCount}</span>
                     </div>
-                    <span className="font-medium">{group.memberCount}</span>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>{group.lastAnalysisTime}</span>
-                  </div>
-                </td>
-                <td className="py-4 px-6 text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    asChild
-                    className="text-primary hover:text-primary hover:bg-primary/10"
-                  >
-                    <Link to={`/groups/${group.id}`}>
-                      查看详情
-                    </Link>
-                  </Button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className="p-1.5 rounded-md bg-green-50 text-green-600">
+                          <MessageSquare className="h-3.5 w-3.5" />
+                        </div>
+                        <span className="font-medium text-sm">{group.yesterdayMessages ?? 0}</span>
+                      </div>
+                      {messageChange !== 0 && (
+                        <span className={`flex items-center gap-0.5 text-xs ${messageChange > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                          {messageChange > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                          {messageChange > 0 ? '+' : ''}{messageChange}
+                          <span className="text-muted-foreground ml-0.5">较上周</span>
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className="p-1.5 rounded-md bg-purple-50 text-purple-600">
+                          <Users className="h-3.5 w-3.5" />
+                        </div>
+                        <span className="font-medium text-sm">{group.yesterdaySpeakers ?? 0}</span>
+                      </div>
+                      {speakerChange !== 0 && (
+                        <span className={`flex items-center gap-0.5 text-xs ${speakerChange > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                          {speakerChange > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                          {speakerChange > 0 ? '+' : ''}{speakerChange}
+                          <span className="text-muted-foreground ml-0.5">较上周</span>
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>{group.lastAnalysisTime}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6 text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="text-primary hover:text-primary hover:bg-primary/10"
+                    >
+                      <Link to={`/groups/${group.id}`}>
+                        查看详情
+                      </Link>
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
@@ -228,8 +278,8 @@ export default function Groups() {
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
+        {/* Pagination - 始终显示 */}
+        {filteredGroups.length > 0 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
             <span className="text-sm text-muted-foreground">
               共 <span className="font-medium text-foreground">{filteredGroups.length}</span> 个群聊
