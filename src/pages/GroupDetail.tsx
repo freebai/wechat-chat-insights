@@ -7,6 +7,7 @@ import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter'
 import { MemberRanking } from '@/components/MemberRanking';
 import { AIAnalysisPanel } from '@/components/AIAnalysisPanel';
 import { MessageTypeChart } from '@/components/MessageTypeChart';
+import { HourlyMessageChart } from '@/components/HourlyMessageChart';
 import { BaseMetricsDisplay, MetricKey } from '@/components/BaseMetricsDisplay';
 import { MetricTrendChart } from '@/components/MetricTrendChart';
 import {
@@ -473,6 +474,13 @@ export default function GroupDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <MemberRanking members={currentReport.memberStats} />
           <MessageTypeChart data={currentReport.messageTypes} />
+        </div>
+      )}
+
+      {/* 24小时消息分布折线图 */}
+      {currentReport && (
+        <div className="mt-6">
+          <HourlyMessageChart data={currentReport.hourlyActivity} />
         </div>
       )}
     </div>
