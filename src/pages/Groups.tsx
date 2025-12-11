@@ -74,7 +74,7 @@ export default function Groups() {
             <div className="p-1.5 rounded-lg bg-primary/10">
               <FolderOpen className="h-4 w-4 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold">群聊管理</h1>
+            <h1 className="text-2xl font-bold">群聊分析</h1>
             <Dialog>
               <DialogTrigger asChild>
                 <Button
@@ -90,7 +90,7 @@ export default function Groups() {
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <HelpCircle className="h-5 w-5 text-primary" />
-                    群聊管理页面 - 逻辑说明
+                    群聊分析页面 - 逻辑说明
                   </DialogTitle>
                 </DialogHeader>
                 <ScrollArea className="max-h-[60vh] pr-4">
@@ -99,7 +99,7 @@ export default function Groups() {
                     <section>
                       <h3 className="font-semibold text-base mb-2 text-foreground">📋 页面概述</h3>
                       <p className="text-muted-foreground leading-relaxed">
-                        群聊管理页面展示所有企业群聊的列表视图，支持搜索筛选和分页浏览，可以快速查看群聊基本信息并跳转到详情页面。
+                        群聊分析页面展示所有企业群聊的列表视图，支持搜索筛选和分页浏览，可以快速查看群聊基本信息并跳转到详情页面。
                       </p>
                     </section>
 
@@ -178,7 +178,7 @@ export default function Groups() {
               </DialogContent>
             </Dialog>
           </div>
-          <p className="text-muted-foreground">管理和查看所有群聊数据</p>
+          <p className="text-muted-foreground">管理和查看所有群聊分析数据</p>
         </div>
       </div>
 

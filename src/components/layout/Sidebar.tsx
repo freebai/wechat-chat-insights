@@ -14,7 +14,7 @@ import { useState } from 'react';
 
 const navItems = [
   { path: '/', label: '总览', icon: LayoutDashboard },
-  { path: '/groups', label: '群聊管理', icon: MessageSquare },
+  { path: '/groups', label: '群聊分析', icon: MessageSquare },
   { path: '/reports', label: '分析记录', icon: FileText },
   { path: '/archiving', label: '存档统计', icon: Shield },
   { path: '/settings/rules', label: '规则配置', icon: Settings },
@@ -38,7 +38,7 @@ export function Sidebar() {
                 <MessageSquare className="h-5 w-5" />
               </div>
               <div>
-                <span className="font-semibold text-sm">群聊分析</span>
+                <span className="font-semibold text-sm">会话存档</span>
                 <p className="text-[10px] text-muted-foreground">WeChat Analytics</p>
               </div>
             </div>

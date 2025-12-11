@@ -161,7 +161,7 @@ export default function Dashboard() {
                         <li>排序规则：按今日消息数降序排列</li>
                         <li>前 3 名使用特殊徽章样式（金/银/铜）</li>
                         <li>点击群聊可跳转至群聊详情页</li>
-                        <li>点击"全部"可跳转至群聊管理列表页</li>
+                        <li>点击"全部"可跳转至群聊分析列表页</li>
                       </ul>
                     </section>
 

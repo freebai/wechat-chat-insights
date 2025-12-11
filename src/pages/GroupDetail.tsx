@@ -112,7 +112,7 @@ export default function GroupDetail() {
     });
   }, [reports, dateRange, fromReports, reportId]);
 
-  // 从群聊管理进入时，用于追踪选中的AI分析日期
+  // 从群聊分析进入时，用于追踪选中的AI分析日期
   const [selectedAnalysisDate, setSelectedAnalysisDate] = useState<string | null>(null);
 
   // 获取日期范围内可用的AI分析日期列表（排序：最新在前）
@@ -146,7 +146,7 @@ export default function GroupDetail() {
       if (found) return found;
     }
     if (!fromReports && selectedAnalysisDate) {
-      // 从群聊管理进入：使用选中的日期
+      // 从群聊分析进入：使用选中的日期
       const found = filteredReports.find(r => r.date === selectedAnalysisDate);
       if (found) return found;
     }
@@ -234,7 +234,7 @@ export default function GroupDetail() {
                       <h3 className="font-semibold text-base mb-2 text-foreground">📋 当前入口</h3>
                       <div className={`p-3 rounded-lg ${fromReports ? 'bg-purple-50 border border-purple-200' : 'bg-blue-50 border border-blue-200'}`}>
                         <div className={`font-medium ${fromReports ? 'text-purple-700' : 'text-blue-700'}`}>
-                          {fromReports ? '从「分析记录」进入' : '从「群聊管理」进入'}
+                          {fromReports ? '从「分析记录」进入' : '从「群聊分析」进入'}
                         </div>
                         <div className={`mt-1 ${fromReports ? 'text-purple-600' : 'text-blue-600'}`}>
                           {fromReports
@@ -284,7 +284,7 @@ export default function GroupDetail() {
                           <thead>
                             <tr className="border-b border-border">
                               <th className="text-left py-2 px-3 font-medium text-foreground">功能项</th>
-                              <th className="text-left py-2 px-3 font-medium text-foreground">群聊管理入口</th>
+                              <th className="text-left py-2 px-3 font-medium text-foreground">群聊分析入口</th>
                               <th className="text-left py-2 px-3 font-medium text-foreground">分析记录入口</th>
                             </tr>
                           </thead>
@@ -306,7 +306,7 @@ export default function GroupDetail() {
                             </tr>
                             <tr className="border-b border-border/50">
                               <td className="py-2 px-3">返回链接</td>
-                              <td className="py-2 px-3">返回群聊管理</td>
+                              <td className="py-2 px-3">返回群聊分析</td>
                               <td className="py-2 px-3">返回分析记录</td>
                             </tr>
                             <tr>

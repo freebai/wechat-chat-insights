@@ -15,7 +15,7 @@ export function Header({ onUpload, onRefresh }: HeaderProps) {
         </div>
         <div>
           <h1 className="text-xl font-semibold tracking-tight">
-            企业微信<span className="text-gradient">群聊分析</span>
+            企业微信<span className="text-gradient">会话存档</span>
           </h1>
           <p className="text-sm text-muted-foreground">会话存档数据分析与AI洞察</p>
         </div>
