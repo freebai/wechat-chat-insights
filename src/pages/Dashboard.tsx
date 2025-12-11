@@ -234,7 +234,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="text-lg font-semibold">消息排行</h3>
-              <p className="text-sm text-muted-foreground mt-0.5">今日活跃群聊</p>
+              <p className="text-sm text-muted-foreground mt-0.5">活跃群聊</p>
             </div>
             <Button variant="ghost" size="sm" asChild className="gap-1 text-primary hover:text-primary hover:bg-primary/10">
               <Link to="/groups">
