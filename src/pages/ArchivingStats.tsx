@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { HelpCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +12,14 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { DateRangeFilter } from '@/components/common/DateRangeFilter';
 import { mockCustomerConsentStats, mockMemberArchivingStats, mockMemberArchivingList } from '@/lib/mockData';
 
@@ -29,6 +38,102 @@ export default function ArchivingStats() {
             <div className="flex items-center gap-3 mb-8">
                 <div className="w-1.5 h-8 bg-gradient-to-b from-primary to-primary/50 rounded-full" />
                 <h1 className="text-2xl font-bold">存档情况统计</h1>
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2.5 text-xs gap-1 border-dashed text-muted-foreground hover:text-primary hover:border-primary"
+                        >
+                            <HelpCircle className="h-3.5 w-3.5" />
+                            逻辑说明
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh]">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                                <HelpCircle className="h-5 w-5 text-primary" />
+                                存档情况统计页面 - 逻辑说明
+                            </DialogTitle>
+                        </DialogHeader>
+                        <ScrollArea className="max-h-[60vh] pr-4">
+                            <div className="space-y-6 text-sm">
+                                {/* 页面概述 */}
+                                <section>
+                                    <h3 className="font-semibold text-base mb-2 text-foreground">📋 页面概述</h3>
+                                    <p className="text-muted-foreground leading-relaxed">
+                                        存档情况统计页面用于展示企业微信会话存档的整体情况，包括客户的同意情况统计和成员的存档开启情况统计，帮助管理员了解会话存档的覆盖程度。
+                                    </p>
+                                </section>
+
+                                {/* 图表说明 */}
+                                <section>
+                                    <h3 className="font-semibold text-base mb-3 text-foreground">📊 图表说明</h3>
+                                    <div className="space-y-3">
+                                        <div className="p-3 bg-muted/50 rounded-lg">
+                                            <div className="font-medium text-foreground">客户同意情况统计图</div>
+                                            <div className="text-muted-foreground mt-1">展示所有客户对会话存档的同意状态分布，包括"已同意"和"未同意"两种状态的占比。</div>
+                                        </div>
+                                        <div className="p-3 bg-muted/50 rounded-lg">
+                                            <div className="font-medium text-foreground">成员存档开启情况统计图</div>
+                                            <div className="text-muted-foreground mt-1">展示配置了客户联系功能的成员的存档开启状态分布，包括"办公版"、"服务版"、"企业版"和"未开启"四种状态。</div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* 字段定义 */}
+                                <section>
+                                    <h3 className="font-semibold text-base mb-3 text-foreground">📝 明细表字段定义</h3>
+                                    <div className="space-y-3">
+                                        <div className="p-3 bg-muted/50 rounded-lg">
+                                            <div className="font-medium text-foreground">成员</div>
+                                            <div className="text-muted-foreground mt-1">配置了客户联系功能的企业成员姓名。</div>
+                                        </div>
+                                        <div className="p-3 bg-muted/50 rounded-lg">
+                                            <div className="font-medium text-foreground">存档开启情况</div>
+                                            <div className="text-muted-foreground mt-1">成员的会话存档版本类型：办公版（基础存档）、服务版（标准存档）、企业版（高级存档）或未开启。</div>
+                                        </div>
+                                        <div className="p-3 bg-muted/50 rounded-lg">
+                                            <div className="font-medium text-foreground">客户同意情况（已同意/客户总数）</div>
+                                            <div className="text-muted-foreground mt-1">该成员名下已同意会话存档的客户数量与客户总数的比例。</div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* 日期筛选逻辑 */}
+                                <section>
+                                    <h3 className="font-semibold text-base mb-2 text-foreground">📅 日期筛选逻辑</h3>
+                                    <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                                        <li>支持选择日期范围进行数据筛选</li>
+                                        <li>点击"查询"按钮应用筛选条件</li>
+                                        <li>点击"重置"按钮恢复默认日期范围</li>
+                                    </ul>
+                                </section>
+
+                                {/* 交互说明 */}
+                                <section>
+                                    <h3 className="font-semibold text-base mb-2 text-foreground">🖱️ 交互说明</h3>
+                                    <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                                        <li>饼图：支持鼠标悬停查看具体数值和占比</li>
+                                        <li>明细表：hover 高亮显示当前行</li>
+                                        <li>查看详情：点击跳转至该成员的客户同意详情页面</li>
+                                        <li>分页导航：支持翻页查看更多数据</li>
+                                    </ul>
+                                </section>
+
+                                {/* 开发注意事项 */}
+                                <section>
+                                    <h3 className="font-semibold text-base mb-2 text-foreground">⚠️ 开发注意事项</h3>
+                                    <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                                        <li>当前使用 Mock 数据，后续需对接真实 API</li>
+                                        <li>统计成员范围仅限配置了客户联系功能的成员</li>
+                                        <li>需处理数据加载状态和错误状态</li>
+                                    </ul>
+                                </section>
+                            </div>
+                        </ScrollArea>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             {/* Filters */}
