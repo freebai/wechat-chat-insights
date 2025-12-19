@@ -47,9 +47,9 @@ export function MetricTrendChart({ data, selectedMetric }: MetricTrendChartProps
                 <stop offset="100%" stopColor={config.color} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              stroke="hsl(var(--border))" 
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="hsl(var(--border))"
               vertical={false}
             />
             <XAxis
@@ -57,6 +57,8 @@ export function MetricTrendChart({ data, selectedMetric }: MetricTrendChartProps
               axisLine={false}
               tickLine={false}
               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+              interval={data.length > 10 ? Math.floor(data.length / 5) : 0}
+              minTickGap={20}
               dy={8}
             />
             <YAxis
@@ -85,11 +87,11 @@ export function MetricTrendChart({ data, selectedMetric }: MetricTrendChartProps
               strokeWidth={2.5}
               fill={`url(#gradient-${selectedMetric})`}
               dot={false}
-              activeDot={{ 
-                r: 6, 
-                fill: config.color, 
-                stroke: 'hsl(var(--card))', 
-                strokeWidth: 2 
+              activeDot={{
+                r: 6,
+                fill: config.color,
+                stroke: 'hsl(var(--card))',
+                strokeWidth: 2
               }}
             />
           </AreaChart>

@@ -20,17 +20,21 @@ interface DateRangeFilterProps {
   value: DateRange | undefined;
   onChange: (range: DateRange | undefined) => void;
   className?: string;
+  showAll?: boolean;
 }
 
-const presets = [
-  { label: '全部', days: 0 },
+const defaultPresets = [
   { label: '昨日', days: 1 },
   { label: '近7天', days: 7 },
   { label: '近30天', days: 30 },
 ];
 
-export function DateRangeFilter({ value, onChange, className }: DateRangeFilterProps) {
+export function DateRangeFilter({ value, onChange, className, showAll = false }: DateRangeFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const presets = showAll
+    ? [{ label: '全部', days: 0 }, ...defaultPresets]
+    : defaultPresets;
 
   const handlePreset = (days: number) => {
     if (days === 0) {

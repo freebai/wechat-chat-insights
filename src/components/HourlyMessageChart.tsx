@@ -1,12 +1,13 @@
 import { HourlyActivity } from '@/lib/mockData';
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from 'recharts';
 import { Clock } from 'lucide-react';
 
@@ -15,15 +16,19 @@ interface HourlyMessageChartProps {
 }
 
 export function HourlyMessageChart({ data }: HourlyMessageChartProps) {
-  // 格式化数据，添加小时标签
-  const chartData = data.map(item => ({
-    ...item,
-    label: `${item.hour}:00`,
-  }));
+  // 格式化数据，添加小时标签（双标签格式）
+  const chartData = data.map(item => {
+    const startHour = item.hour.toString().padStart(2, '0');
+    const endHour = (item.hour + 1).toString().padStart(2, '0');
+    return {
+      ...item,
+      label: `${startHour}:00`,
+      rangeLabel: `${startHour}:00 - ${endHour}:00`,
+    };
+  });
 
   // 计算 Top 3
   const sortedData = [...data].sort((a, b) => b.count - a.count);
-  const top3 = sortedData.slice(0, 3);
 
   // 获取排名颜色
   const getRankColor = (rank: number) => {
@@ -41,25 +46,7 @@ export function HourlyMessageChart({ data }: HourlyMessageChartProps) {
     return index + 1;
   };
 
-  // 自定义 Dot 组件
-  //@ts-ignore
-  const CustomizedDot = (props: any) => {
-    const { cx, cy, payload } = props;
-    const rank = getRank(payload.hour);
-
-    if (rank > 3) return null; // 非 Top 3 不显示特殊点，或者显示默认小点
-
-    return (
-      <circle
-        cx={cx}
-        cy={cy}
-        r={rank === 1 ? 6 : 5}
-        stroke={getRankColor(rank)}
-        strokeWidth={2}
-        fill="white"
-      />
-    );
-  };
+  const top3 = sortedData.slice(0, 3);
 
   return (
     <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
@@ -70,41 +57,38 @@ export function HourlyMessageChart({ data }: HourlyMessageChartProps) {
           </div>
           <div>
             <h3 className="text-lg font-semibold">24小时消息分布</h3>
-            <p className="text-sm text-muted-foreground">消息活跃时段分析</p>
           </div>
         </div>
 
         {/* Top 3 概览 */}
         <div className="flex gap-3">
-          {top3.map((item, index) => (
-            <div key={item.hour} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
-              <div
-                className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white"
-                style={{ backgroundColor: getRankColor(index + 1) }}
-              >
-                {index + 1}
+          {top3.map((item, index) => {
+            const startHour = item.hour.toString().padStart(2, '0');
+            return (
+              <div key={item.hour} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
+                <div
+                  className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white"
+                  style={{ backgroundColor: getRankColor(index + 1) }}
+                >
+                  {index + 1}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-medium text-foreground">{startHour}:00时段</span>
+                  <span className="text-[10px] text-muted-foreground">{item.count} 条</span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-medium text-foreground">{item.hour}:00</span>
-                <span className="text-[10px] text-muted-foreground">{item.count} 条</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
+          <BarChart
             data={chartData}
             margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+            barGap={0}
           >
-            <defs>
-              <linearGradient id="hourlyGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-              </linearGradient>
-            </defs>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke="hsl(var(--border))"
@@ -125,6 +109,7 @@ export function HourlyMessageChart({ data }: HourlyMessageChartProps) {
               width={40}
             />
             <Tooltip
+              cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
               contentStyle={{
                 backgroundColor: 'hsl(var(--popover))',
                 border: '1px solid hsl(var(--border))',
@@ -152,34 +137,36 @@ export function HourlyMessageChart({ data }: HourlyMessageChartProps) {
                   ''
                 ];
               }}
-              labelFormatter={(label) => `${label}`}
-            />
-            <Line
-              type="monotone"
-              dataKey="count"
-              stroke="hsl(var(--primary))"
-              strokeWidth={2.5}
-              // 使用自定义 Dot
-              dot={<CustomizedDot />}
-              activeDot={{
-                fill: 'hsl(var(--primary))',
-                stroke: 'hsl(var(--background))',
-                strokeWidth: 2,
-                r: 6,
+              labelFormatter={(_, payload) => {
+                if (payload && payload.length > 0) {
+                  return payload[0].payload.rangeLabel;
+                }
+                return '';
               }}
             />
-          </LineChart>
+            <Bar
+              dataKey="count"
+              radius={[4, 4, 0, 0]}
+              maxBarSize={40}
+            >
+              {chartData.map((entry, index) => {
+                const rank = getRank(entry.hour);
+                return (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={rank <= 3 ? getRankColor(rank) : 'hsl(var(--primary))'}
+                    fillOpacity={rank <= 3 ? 0.9 : 0.7}
+                  />
+                );
+              })}
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       </div>
 
       {/* 图例说明 */}
       <div className="flex items-center justify-center gap-6 mt-4 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-0.5 bg-primary rounded-full" />
-          <span>消息数量</span>
-        </div>
-        <span className="text-border">|</span>
-        <span>横轴：24小时时段</span>
+        <span>横轴：24小时时段 (整点间为一个时段，例如 02:00 - 03:00)</span>
       </div>
     </div>
   );

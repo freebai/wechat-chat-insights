@@ -93,22 +93,26 @@ export default function GroupDetail() {
     });
   }, [reports, dateRange]);
 
-  // 趋势数据：从分析记录进入时基于报告日期往前推7天，否则基于日期选择器
   const trendReports = useMemo(() => {
+    // 确定趋势截止日期
     let endDate: Date;
     if (fromReports && reportId) {
-      // 从分析记录进入：使用当前报告的日期
       const targetReport = reports.find(r => r.id === reportId);
       endDate = targetReport ? new Date(targetReport.date) : dateRange.to;
     } else {
       endDate = dateRange.to;
     }
 
+    // 确定趋势开始日期：至少展示 7 天
     const from = new Date(endDate);
-    from.setDate(from.getDate() - 7);
+    from.setDate(from.getDate() - 6); // 减去 6 天即包含本日共 7 天
+
+    // 如果用户在日期选择器中选择了更早的日期（如 30 天），则以选择器为准
+    const effectiveFrom = (!fromReports && dateRange.from < from) ? dateRange.from : from;
+
     return reports.filter(report => {
       const reportDate = new Date(report.date);
-      return reportDate >= from && reportDate <= endDate;
+      return reportDate >= effectiveFrom && reportDate <= endDate;
     });
   }, [reports, dateRange, fromReports, reportId]);
 
@@ -259,19 +263,39 @@ export default function GroupDetail() {
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">基础指标</div>
-                          <div className="text-muted-foreground mt-1">总消息数、成员数、发言人数、Top20%发言占比。点击指标卡片可查看对应的趋势图表。</div>
+                          <div className="text-muted-foreground mt-1 text-xs space-y-1.5">
+                            <p><strong>总消息数</strong>：选定日期范围内所有群成员产生的消息总量（累加值）。</p>
+                            <p><strong>总成员数</strong>：展示该群聊的<strong>当前实时成员总数</strong>。该指标作为计算活跃占比的分母基准。</p>
+                            <p><strong>发言人数</strong>：选定日期范围内每日发言人数的<strong>累加之和</strong>（即“发言人次”概念）。该逻辑与活跃活跃占比公式保持一致。</p>
+                            <p><strong>Top 20% 发言占比</strong>：群内最活跃的前 20% 成员产生的消息量占总量的百分比。</p>
+                          </div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">指标趋势图</div>
-                          <div className="text-muted-foreground mt-1">展示选中指标近7天的变化趋势，帮助了解群聊活跃度的变化情况。</div>
+                          <div className="text-muted-foreground mt-1">
+                            展示选中指标在选定日期范围内的变化趋势。图表上的每一个数据点均代表<strong>当天的增量/统计值</strong>（例如当日产生的总消息数），而非历史累计总值。趋势展示范围将与时间选择器（如近 30 天）自动同步。
+                          </div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">成员消息数排名</div>
-                          <div className="text-muted-foreground mt-1">按消息数量排序的成员列表，展示最活跃的发言者。</div>
+                          <div className="text-muted-foreground mt-1">
+                            <strong>统计逻辑</strong>：对选定日期范围内，群内每位成员发送的消息总量进行升序/降序统计。数据随日期范围动态累加。<br />
+                            <strong>交互逻辑</strong>：支持查看成员类型（内部/外部），Hover 态高亮显示。
+                          </div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">消息类型分布</div>
-                          <div className="text-muted-foreground mt-1">展示各类型消息（文本、图片、文件等）的数量占比分布。</div>
+                          <div className="text-muted-foreground mt-1">
+                            <strong>统计逻辑</strong>：统计选定范围内各类消息（文本、图片、文件、语音等）的累计数量及占比。<br />
+                            <strong>交互逻辑</strong>：Hover 饼图色块可查看具体的消息条数和百分比。
+                          </div>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="font-medium text-foreground">24小时消息分布</div>
+                          <div className="text-muted-foreground mt-1">
+                            <strong>统计逻辑</strong>：将选定范围内每一天的相同整点时段（如所有日期的 02:00-03:00）的消息数进行累加。反映周期内的用户活跃习惯。<br />
+                            <strong>交互逻辑</strong>：柱状图展示，Tooltip 显示具体的“开始-结束”时间区间及累计消息量。
+                          </div>
                         </div>
                       </div>
                     </section>
@@ -316,6 +340,24 @@ export default function GroupDetail() {
                             </tr>
                           </tbody>
                         </table>
+                      </div>
+                    </section>
+
+                    {/* 指标详细定义 */}
+                    <section>
+                      <h3 className="font-semibold text-base mb-3 text-foreground">🔢 指标口径补充</h3>
+                      <div className="space-y-3">
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="font-medium text-foreground">活跃成员占比 (Participation Rate)</div>
+                          <div className="text-muted-foreground mt-1">
+                            计算公式：(选定时段内每天发言人数累加之和 / 选定时段内每天总成员数累加之和)。<br />
+                            该指标反映了该段时期内群聊互动的活跃广度。
+                          </div>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="font-medium text-foreground">Top 20% 发言占比</div>
+                          <div className="text-muted-foreground mt-1">群内最活跃的前 20% 成员所贡献的消息量占总消息量的百分比。用于衡量群聊话题是否由少数人主导（二八法则）。</div>
+                        </div>
                       </div>
                     </section>
 

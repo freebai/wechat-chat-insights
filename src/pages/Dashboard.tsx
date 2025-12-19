@@ -113,19 +113,19 @@ export default function Dashboard() {
                       <div className="space-y-3">
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">群聊总数</div>
-                          <div className="text-muted-foreground mt-1">当前系统中所有群聊的数量总和，包含活跃和不活跃的群聊。</div>
+                          <div className="text-muted-foreground mt-1">当前系统中累计接入的所有群聊数量。该指标为当前实时总数，不随右上角时间筛选而变化。</div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">总成员数</div>
-                          <div className="text-muted-foreground mt-1">所有群聊中的成员数量累计（注：同一用户在多个群聊中会被重复计算）。</div>
+                          <div className="text-muted-foreground mt-1">所有群聊中的成员数量累计。该指标为当前实时总数，不随时间筛选而变化（注：同一用户在多个群聊中会被重复计算）。</div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">总消息数</div>
-                          <div className="text-muted-foreground mt-1">在选定日期范围内，所有群聊产生的消息数量总和。</div>
+                          <div className="text-muted-foreground mt-1">在选定日期范围内，所有群聊产生的消息数量总和。该指标随时间筛选而动态累加。</div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">发言人数</div>
-                          <div className="text-muted-foreground mt-1">在选定日期范围内，至少发送过一条消息的成员数量（按人次统计）。</div>
+                          <div className="text-muted-foreground mt-1">在选定日期范围内，至少发送过一条消息的成员数量（按人次统计）。该指标随时间筛选而动态变化。</div>
                         </div>
                       </div>
                     </section>

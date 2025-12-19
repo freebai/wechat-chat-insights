@@ -1,6 +1,14 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileText, Calendar, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { mockChatGroups, generateMockReports } from '@/lib/mockData';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -61,8 +69,54 @@ export default function Reports() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">分析记录</h1>
-          <p className="text-muted-foreground mt-1">查看所有群聊的历史分析报告</p>
+          <div className="flex items-center gap-2.5 mb-1">
+            <h1 className="text-2xl font-bold">分析记录</h1>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2.5 text-xs gap-1 border-dashed text-muted-foreground hover:text-primary hover:border-primary"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" />
+                  逻辑说明
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <HelpCircle className="h-5 w-5 text-primary" />
+                    分析记录页面 - 逻辑说明
+                  </DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="max-h-[60vh] pr-4">
+                  <div className="space-y-6 text-sm">
+                    <section>
+                      <h3 className="font-semibold text-base mb-2 text-foreground">📋 页面概述</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        本页面记录了系统对各群聊产生的每日深度分析报告。用户可以追溯历史记录并查看具体的 AI 总结和活跃指标。
+                      </p>
+                    </section>
+                    <section>
+                      <h3 className="font-semibold text-base mb-2 text-foreground">⏱️ 报告生成机制</h3>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                        <li><strong>定时生成</strong>：系统通常在每日凌晨对前一日的聊天数据进行汇总和 AI 分析。</li>
+                        <li><strong>准入阈值</strong>：为了保证分析质量，消息量过少（如每日少于 10 条）或成员数过少的群聊可能不会产生当日分析报告。</li>
+                      </ul>
+                    </section>
+                    <section>
+                      <h3 className="font-semibold text-base mb-2 text-foreground">🔍 检索逻辑</h3>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                        <li><strong>日期筛选</strong>：支持查看特定时间段内的所有报告。</li>
+                        <li><strong>群聊联动</strong>：从本页面点击“查看详情”进入群聊详情时，将锁定查看该日期的特定报告。</li>
+                      </ul>
+                    </section>
+                  </div>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+          </div>
+          <p className="text-muted-foreground">追溯和管理历史产生的 AI 智能分析报告</p>
         </div>
       </div>
 

@@ -1,6 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, HelpCircle } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 import {
     Select,
@@ -68,6 +76,59 @@ export default function CustomerConsentDetails() {
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <h1 className="text-2xl font-bold">客户同意情况明细</h1>
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2.5 text-xs gap-1 border-dashed text-muted-foreground hover:text-primary hover:border-primary"
+                        >
+                            <HelpCircle className="h-3.5 w-3.5" />
+                            逻辑说明
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh]">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                                <HelpCircle className="h-5 w-5 text-primary" />
+                                客户同意明细页面 - 逻辑说明
+                            </DialogTitle>
+                        </DialogHeader>
+                        <ScrollArea className="max-h-[60vh] pr-4">
+                            <div className="space-y-6 text-sm">
+                                <section>
+                                    <h3 className="font-semibold text-base mb-2 text-foreground">📋 页面概述</h3>
+                                    <p className="text-muted-foreground leading-relaxed">
+                                        本页面展示具体客户对企业微信会话存档的同意情况明细，支持按所属员工、状态和时间进行筛选。
+                                    </p>
+                                </section>
+                                <section>
+                                    <h3 className="font-semibold text-base mb-3 text-foreground">📊 字段定义</h3>
+                                    <div className="space-y-3">
+                                        <div className="p-3 bg-muted/50 rounded-lg">
+                                            <div className="font-medium text-foreground">同意状态</div>
+                                            <div className="text-muted-foreground mt-1">
+                                                <strong>已同意</strong>：客户已点击确认同意会话存档。<br />
+                                                <strong>未同意</strong>：客户尚未操作或明确拒绝。
+                                            </div>
+                                        </div>
+                                        <div className="p-3 bg-muted/50 rounded-lg">
+                                            <div className="font-medium text-foreground">变更时间</div>
+                                            <div className="text-muted-foreground mt-1">客户最后一次操作或更新同意状态的时间。</div>
+                                        </div>
+                                    </div>
+                                </section>
+                                <section>
+                                    <h3 className="font-semibold text-base mb-2 text-foreground">🔍 筛选逻辑</h3>
+                                    <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                                        <li><strong>时间筛选</strong>：作用于“变更时间”。若客户从未操作（无变更时间），则不会出现在特定时间范围的筛选结果中。</li>
+                                        <li><strong>全量查看</strong>：默认时间筛选项为“全部”，展示所有历史记录。</li>
+                                    </ul>
+                                </section>
+                            </div>
+                        </ScrollArea>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             {/* Filters */}
@@ -101,7 +162,7 @@ export default function CustomerConsentDetails() {
                     </Select>
                 </div>
 
-                <DateRangeFilter value={dateRange} onChange={setDateRange} />
+                <DateRangeFilter value={dateRange} onChange={setDateRange} showAll={true} />
 
                 <Button onClick={handleReset} variant="outline">
                     重置

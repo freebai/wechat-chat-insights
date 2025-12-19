@@ -94,12 +94,12 @@ export default function ArchivingStats() {
                                     </div>
                                 </section>
 
-                                {/* 数据说明 */}
                                 <section>
-                                    <h3 className="font-semibold text-base mb-2 text-foreground">📅 数据说明</h3>
+                                    <h3 className="font-semibold text-base mb-2 text-foreground">📅 数据时效性</h3>
                                     <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                                        <li>饼图展示当前最新的同意/开启人数统计</li>
-                                        <li>如需按时间筛选，请进入详情明细页查看</li>
+                                        <li>饼图与明细列表均展示**当前最新**的同意/开启状态，不随全局时间筛选变化。</li>
+                                        <li><strong>已同意/客户总数</strong>：分子为历史累计已同意人数，分母为该成员名下当前所有客户总数。</li>
+                                        <li>如需查看状态变更的历史轨迹，请进入“查看详情”在明细页进行时间筛选。</li>
                                     </ul>
                                 </section>
 

@@ -109,27 +109,27 @@ export default function Groups() {
                       <div className="space-y-3">
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">群聊名称</div>
-                          <div className="text-muted-foreground mt-1">群聊的名称。带有"不参与AI分析"标签的群聊将不会进行 AI 分析。</div>
+                          <div className="text-muted-foreground mt-1">群聊的名称。带有"不参与AI分析"标签的群聊将不会进行 AI 智能洞察生成。</div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">群主</div>
-                          <div className="text-muted-foreground mt-1">群主的名称。</div>
+                          <div className="text-muted-foreground mt-1">该群聊在企业微信中的当前主要负责人。</div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">成员数</div>
-                          <div className="text-muted-foreground mt-1">当前群聊中的总成员数量，实时更新。</div>
+                          <div className="text-muted-foreground mt-1">该群聊当前的成员总数。该指标为实时值，不随时间筛选变化。</div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">昨日消息数</div>
-                          <div className="text-muted-foreground mt-1">昨日该群聊的消息总数。旁边的变化值表示与上周同日（周环比）的对比，绿色上升表示增长，红色下降表示减少。</div>
+                          <div className="text-muted-foreground mt-1">昨日（自然日）该群聊的消息总数。变化值表示与上周同日（周环比）的对比，用于观察群聊活跃度波动。</div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">昨日发言人数</div>
-                          <div className="text-muted-foreground mt-1">昨日该群聊中发言的成员数量。旁边的变化值表示与上周同日（周环比）的对比。</div>
+                          <div className="text-muted-foreground mt-1">昨日（自然日）在该群聊中至少发送过一条消息的成员数。</div>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-medium text-foreground">最近一次分析时间</div>
-                          <div className="text-muted-foreground mt-1">该群聊最后进行 AI 分析的时间，格式为"YYYY-MM-DD HH:mm"。</div>
+                          <div className="text-muted-foreground mt-1">AI 引擎最后一次对该群聊产生深度洞察报告的时间。</div>
                         </div>
                       </div>
                     </section>
