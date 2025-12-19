@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { HelpCircle } from 'lucide-react';
@@ -20,15 +19,10 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { DateRangeFilter } from '@/components/common/DateRangeFilter';
 import { mockCustomerConsentStats, mockMemberArchivingStats, mockMemberArchivingList } from '@/lib/mockData';
 
 export default function ArchivingStats() {
     const navigate = useNavigate();
-    const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
-        from: new Date(2022, 7, 9),
-        to: new Date(2022, 7, 15),
-    });
 
     const RADIAN = Math.PI / 180;
 
@@ -100,13 +94,12 @@ export default function ArchivingStats() {
                                     </div>
                                 </section>
 
-                                {/* 日期筛选逻辑 */}
+                                {/* 数据说明 */}
                                 <section>
-                                    <h3 className="font-semibold text-base mb-2 text-foreground">📅 日期筛选逻辑</h3>
+                                    <h3 className="font-semibold text-base mb-2 text-foreground">📅 数据说明</h3>
                                     <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                                        <li>支持选择日期范围进行数据筛选</li>
-                                        <li>点击"查询"按钮应用筛选条件</li>
-                                        <li>点击"重置"按钮恢复默认日期范围</li>
+                                        <li>饼图展示当前最新的同意/开启人数统计</li>
+                                        <li>如需按时间筛选，请进入详情明细页查看</li>
                                     </ul>
                                 </section>
 
@@ -136,12 +129,7 @@ export default function ArchivingStats() {
                 </Dialog>
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4 mb-8 bg-card p-4 rounded-xl border shadow-sm">
-                <DateRangeFilter value={dateRange} onChange={setDateRange} />
-                <Button className="shadow-sm">查询</Button>
-                <Button variant="outline">重置</Button>
-            </div>
+
 
             {/* Charts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">

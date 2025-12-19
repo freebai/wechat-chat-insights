@@ -18,6 +18,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
 import { mockCustomerConsentList, mockMemberArchivingList } from '@/lib/mockData';
 
 export default function CustomerConsentDetails() {
@@ -27,14 +28,41 @@ export default function CustomerConsentDetails() {
 
     const [employeeId, setEmployeeId] = useState<string>(initialEmployeeId);
     const [status, setStatus] = useState<string>('all');
+    const [dateRange, setDateRange] = useState<DateRange>(() => {
+        const to = new Date();
+        const from = new Date();
+        from.setDate(from.getDate() - 30); // 默认近30天
+        return { from, to };
+    });
 
     const filteredData = useMemo(() => {
         return mockCustomerConsentList.filter((item) => {
             const matchEmployee = employeeId === 'all' || item.employeeId === employeeId;
             const matchStatus = status === 'all' || item.status === status;
-            return matchEmployee && matchStatus;
+
+            // 时间筛选
+            let matchDate = true;
+            if (item.changeTime) {
+                const itemDate = new Date(item.changeTime);
+                const fromDate = new Date(dateRange.from);
+                const toDate = new Date(dateRange.to);
+                fromDate.setHours(0, 0, 0, 0);
+                toDate.setHours(23, 59, 59, 999);
+                matchDate = itemDate >= fromDate && itemDate <= toDate;
+            }
+
+            return matchEmployee && matchStatus && matchDate;
         });
-    }, [employeeId, status]);
+    }, [employeeId, status, dateRange]);
+
+    const handleReset = () => {
+        setEmployeeId('all');
+        setStatus('all');
+        const to = new Date();
+        const from = new Date();
+        from.setDate(from.getDate() - 30);
+        setDateRange({ from, to });
+    };
 
     return (
         <div className="container mx-auto px-6 py-8">
@@ -77,7 +105,9 @@ export default function CustomerConsentDetails() {
                     </Select>
                 </div>
 
-                <Button onClick={() => { setEmployeeId('all'); setStatus('all'); }} variant="outline">
+                <DateRangeFilter value={dateRange} onChange={setDateRange} />
+
+                <Button onClick={handleReset} variant="outline">
                     重置
                 </Button>
             </div>
