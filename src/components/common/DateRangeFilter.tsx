@@ -17,12 +17,13 @@ export type DateRange = {
 };
 
 interface DateRangeFilterProps {
-  value: DateRange;
-  onChange: (range: DateRange) => void;
+  value: DateRange | undefined;
+  onChange: (range: DateRange | undefined) => void;
   className?: string;
 }
 
 const presets = [
+  { label: '全部', days: 0 },
   { label: '昨日', days: 1 },
   { label: '近7天', days: 7 },
   { label: '近30天', days: 30 },
@@ -32,6 +33,10 @@ export function DateRangeFilter({ value, onChange, className }: DateRangeFilterP
   const [isOpen, setIsOpen] = useState(false);
 
   const handlePreset = (days: number) => {
+    if (days === 0) {
+      onChange(undefined);
+      return;
+    }
     const to = new Date();
     const from = new Date();
     if (days === 1) {
@@ -46,6 +51,8 @@ export function DateRangeFilter({ value, onChange, className }: DateRangeFilterP
   };
 
   const getActivePreset = () => {
+    if (!value) return '全部';
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const yesterday = new Date(today);
@@ -64,7 +71,7 @@ export function DateRangeFilter({ value, onChange, className }: DateRangeFilterP
     // 检查其他预设：to 是今天，计算 from 和 to 的差值
     if (toDate.getTime() === today.getTime()) {
       const diffDays = Math.round((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
-      const preset = presets.find(p => p.days === diffDays && p.days !== 1);
+      const preset = presets.find(p => p.days === diffDays && p.days !== 1 && p.days !== 0);
       if (preset) return preset.label;
     }
 
@@ -87,13 +94,19 @@ export function DateRangeFilter({ value, onChange, className }: DateRangeFilterP
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
             <CalendarIcon className="h-4 w-4" />
-            {format(value.from, 'MM/dd', { locale: zhCN })} - {format(value.to, 'MM/dd', { locale: zhCN })}
+            {value ? (
+              <>
+                {format(value.from, 'MM/dd', { locale: zhCN })} - {format(value.to, 'MM/dd', { locale: zhCN })}
+              </>
+            ) : (
+              '选择日期范围'
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="end">
           <Calendar
             mode="range"
-            selected={{ from: value.from, to: value.to }}
+            selected={value ? { from: value.from, to: value.to } : undefined}
             onSelect={(range) => {
               if (range?.from && range?.to) {
                 onChange({ from: range.from, to: range.to });

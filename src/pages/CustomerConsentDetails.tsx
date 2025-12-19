@@ -28,12 +28,7 @@ export default function CustomerConsentDetails() {
 
     const [employeeId, setEmployeeId] = useState<string>(initialEmployeeId);
     const [status, setStatus] = useState<string>('all');
-    const [dateRange, setDateRange] = useState<DateRange>(() => {
-        const to = new Date();
-        const from = new Date();
-        from.setDate(from.getDate() - 30); // 默认近30天
-        return { from, to };
-    });
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
     const filteredData = useMemo(() => {
         return mockCustomerConsentList.filter((item) => {
@@ -42,13 +37,17 @@ export default function CustomerConsentDetails() {
 
             // 时间筛选
             let matchDate = true;
-            if (item.changeTime) {
+            if (dateRange && item.changeTime) {
                 const itemDate = new Date(item.changeTime);
                 const fromDate = new Date(dateRange.from);
                 const toDate = new Date(dateRange.to);
                 fromDate.setHours(0, 0, 0, 0);
                 toDate.setHours(23, 59, 59, 999);
                 matchDate = itemDate >= fromDate && itemDate <= toDate;
+            }
+            // 如果筛选了时间但数据没有变更时间，则不符合筛选条件
+            else if (dateRange && !item.changeTime) {
+                matchDate = false;
             }
 
             return matchEmployee && matchStatus && matchDate;
@@ -58,10 +57,7 @@ export default function CustomerConsentDetails() {
     const handleReset = () => {
         setEmployeeId('all');
         setStatus('all');
-        const to = new Date();
-        const from = new Date();
-        from.setDate(from.getDate() - 30);
-        setDateRange({ from, to });
+        setDateRange(undefined);
     };
 
     return (
