@@ -637,3 +637,70 @@ export const mockCustomerConsentList: CustomerConsent[] = [
   { id: '7', name: '客户G', employeeId: '5', employeeName: '陈运营', status: 'disagreed' },
   { id: '8', name: '客户H', employeeId: '6', employeeName: '周客服', status: 'agreed', changeTime: '2022-08-15 13:30' },
 ];
+
+// ========== 客户群维度会话存档数据 ==========
+
+// 客户群同意情况统计接口
+export interface GroupConsentStat {
+  groupId: string;
+  groupName: string;
+  externalMemberCount: number;  // 外部联系人总数
+  agreedCount: number;          // 已同意人数
+  owner: string;                // 群主
+}
+
+// 群内外部联系人同意详情（企业成员固定同意，不需展示）
+export interface GroupMemberConsent {
+  id: string;
+  groupId: string;
+  groupName: string;
+  memberName: string;
+  status: 'agreed' | 'disagreed';
+  changeTime?: string;
+}
+
+// 客户群同意情况统计饼图数据
+export const mockGroupConsentStats: ArchivingStat[] = [
+  { name: '已同意会话存档', value: 156, color: '#0084ff' },
+  { name: '未同意会话存档', value: 24, color: '#e0e0e0' },
+];
+
+// 客户群列表（按群维度展示）
+export const mockGroupConsentList: GroupConsentStat[] = [
+  { groupId: '1', groupName: '产品研发群', externalMemberCount: 12, agreedCount: 12, owner: '张经理' },
+  { groupId: '2', groupName: '销售运营群', externalMemberCount: 25, agreedCount: 23, owner: '赵销售' },
+  { groupId: '3', groupName: '客服支持群', externalMemberCount: 45, agreedCount: 42, owner: '周客服' },
+  { groupId: '4', groupName: '市场推广群', externalMemberCount: 18, agreedCount: 18, owner: '陈运营' },
+  { groupId: '5', groupName: '财务行政群', externalMemberCount: 8, agreedCount: 7, owner: '吴财务' },
+  { groupId: '6', groupName: '高管决策群', externalMemberCount: 5, agreedCount: 5, owner: 'CEO' },
+  { groupId: '7', groupName: '新项目筹备群', externalMemberCount: 10, agreedCount: 8, owner: '李工程师' },
+  { groupId: '8', groupName: 'VIP客户服务群', externalMemberCount: 35, agreedCount: 33, owner: '赵销售' },
+  { groupId: '9', groupName: '代理商合作群', externalMemberCount: 22, agreedCount: 20, owner: '陈运营' },
+];
+
+// 群内外部联系人同意详情列表
+export const mockGroupMemberConsentList: GroupMemberConsent[] = [
+  // 产品研发群
+  { id: '1', groupId: '1', groupName: '产品研发群', memberName: '外部客户A', status: 'agreed', changeTime: '2024-08-10 10:30' },
+  { id: '2', groupId: '1', groupName: '产品研发群', memberName: '外部客户B', status: 'agreed', changeTime: '2024-08-11 14:20' },
+  { id: '3', groupId: '1', groupName: '产品研发群', memberName: '外部客户C', status: 'agreed', changeTime: '2024-08-12 09:15' },
+  // 销售运营群
+  { id: '4', groupId: '2', groupName: '销售运营群', memberName: '代理商张三', status: 'agreed', changeTime: '2024-08-13 16:45' },
+  { id: '5', groupId: '2', groupName: '销售运营群', memberName: '客户李四', status: 'agreed', changeTime: '2024-08-14 11:00' },
+  { id: '6', groupId: '2', groupName: '销售运营群', memberName: '客户王五', status: 'disagreed' },
+  { id: '7', groupId: '2', groupName: '销售运营群', memberName: '合作方赵六', status: 'agreed', changeTime: '2024-08-15 13:30' },
+  // 客服支持群
+  { id: '8', groupId: '3', groupName: '客服支持群', memberName: '用户小明', status: 'agreed', changeTime: '2024-08-16 09:00' },
+  { id: '9', groupId: '3', groupName: '客服支持群', memberName: '用户小红', status: 'disagreed' },
+  { id: '10', groupId: '3', groupName: '客服支持群', memberName: '用户小刚', status: 'agreed', changeTime: '2024-08-17 15:20' },
+  // 市场推广群
+  { id: '11', groupId: '4', groupName: '市场推广群', memberName: '媒体联系人A', status: 'agreed', changeTime: '2024-08-18 10:00' },
+  { id: '12', groupId: '4', groupName: '市场推广群', memberName: '媒体联系人B', status: 'agreed', changeTime: '2024-08-19 11:30' },
+  // 财务行政群
+  { id: '13', groupId: '5', groupName: '财务行政群', memberName: '供应商财务', status: 'agreed', changeTime: '2024-08-20 14:00' },
+  { id: '14', groupId: '5', groupName: '财务行政群', memberName: '审计人员', status: 'disagreed' },
+  // 新项目筹备群
+  { id: '15', groupId: '7', groupName: '新项目筹备群', memberName: '外包团队A', status: 'agreed', changeTime: '2024-08-21 16:00' },
+  { id: '16', groupId: '7', groupName: '新项目筹备群', memberName: '外包团队B', status: 'disagreed' },
+];
+
