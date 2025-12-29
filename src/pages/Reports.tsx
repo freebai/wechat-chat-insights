@@ -54,12 +54,22 @@ export default function Reports() {
   });
   const [currentPage, setCurrentPage] = useState(1);
 
+  // 生成所有报告，并过滤掉不满足 AI 分析条件的记录
+  // 分析记录页面只展示有"AI 智能分析"的记录
   const allReports = useMemo(() => {
     return mockChatGroups.flatMap(group =>
-      generateMockReports(group.id, 30).map(report => ({
-        ...report,
-        groupName: group.name,
-      }))
+      generateMockReports(group.id, 30)
+        .filter(report => {
+          // 排除不参与 AI 分析的群聊
+          if (group.isExcludedFromScoring) return false;
+          // 排除不满足门槛的报告（新群或微型群）
+          if (report.riskStatus?.isNewGroup || report.riskStatus?.isMicroGroup) return false;
+          return true;
+        })
+        .map(report => ({
+          ...report,
+          groupName: group.name,
+        }))
     );
   }, []);
 
@@ -104,7 +114,7 @@ export default function Reports() {
       const totalMessages = reports.reduce((sum, r) => sum + r.messageCount, 0);
       const avgSpeakers = Math.round(reports.reduce((sum, r) => sum + r.baseMetrics.activeSpeakers, 0) / reports.length);
       const latestReport = reports.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-      
+
       return {
         ...latestReport,
         id: key,
@@ -116,7 +126,7 @@ export default function Reports() {
         },
         aiInsight: {
           ...latestReport.aiInsight,
-          summary: dimension === 'week' 
+          summary: dimension === 'week'
             ? `本周群聊分析：共${reports.length}天有效数据，总消息${totalMessages}条，${latestReport.aiInsight.summary.split('，').slice(1).join('，')}`
             : `本月群聊分析：共${reports.length}天有效数据，总消息${totalMessages}条，${latestReport.aiInsight.summary.split('，').slice(1).join('，')}`,
         },
@@ -252,7 +262,7 @@ export default function Reports() {
               </button>
             ))}
           </div>
-          
+
           <Select value={selectedGroup} onValueChange={handleGroupChange}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="选择群聊" />
@@ -264,12 +274,12 @@ export default function Reports() {
               ))}
             </SelectContent>
           </Select>
-          
+
           {dimension === 'day' && (
             <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
           )}
         </div>
-        
+
         <span className="text-xs text-muted-foreground">
           {getDimensionUpdateInfo(dimension)}
         </span>
@@ -313,7 +323,7 @@ export default function Reports() {
                 </td>
                 <td className="py-4 px-6 text-right">
                   <Link
-                    to={`/groups/${report.groupId}?reportId=${report.id}&fromReports=true`}
+                    to={`/groups/${report.groupId}?reportId=${report.id}&fromReports=true&dimension=${dimension}`}
                     className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg transition-colors"
                     onClick={() => {
                       // 存储当前筛选后的报告列表供详情页切换使用

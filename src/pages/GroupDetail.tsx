@@ -36,6 +36,7 @@ export default function GroupDetail() {
   // 检查是否从分析记录页面进入
   const fromReports = searchParams.get('fromReports') === 'true';
   const reportId = searchParams.get('reportId');
+  const reportDimension = searchParams.get('dimension') as 'day' | 'week' | 'month' | null;
 
   // 从 sessionStorage 获取报告列表上下文
   const [reportListContext, setReportListContext] = useState<ReportListItem[]>([]);
@@ -472,6 +473,8 @@ export default function GroupDetail() {
               onDateChange={setSelectedAnalysisDate}
               isEmpty={shouldShowEmpty}
               emptyReason={emptyReason}
+              dimension={fromReports ? (reportDimension || 'day') : undefined}
+              showDimensionPicker={!fromReports}
             />
           );
         })()}

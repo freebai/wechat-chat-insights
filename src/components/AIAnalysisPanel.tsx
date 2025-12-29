@@ -19,6 +19,10 @@ interface AIAnalysisPanelProps {
   isEmpty?: boolean;
   /** 空状态原因: 'excluded'=不参与AI分析, 'insufficient'=不满足门槛, 'no_data'=无昨日数据 */
   emptyReason?: 'excluded' | 'insufficient' | 'no_data';
+  /** 外部传入的固定维度（从分析记录进入时使用） */
+  dimension?: AnalysisDimension;
+  /** 是否显示维度切换按钮（默认 true） */
+  showDimensionPicker?: boolean;
 }
 
 // 获取维度的更新说明
@@ -82,15 +86,20 @@ export function AIAnalysisPanel({
   onDateChange,
   showDatePicker = false,
   isEmpty = false,
-  emptyReason = 'no_data'
+  emptyReason = 'no_data',
+  dimension: externalDimension,
+  showDimensionPicker = true
 }: AIAnalysisPanelProps) {
-  const [dimension, setDimension] = useState<AnalysisDimension>('day');
+  const [internalDimension, setInternalDimension] = useState<AnalysisDimension>('day');
+
+  // 当外部传入 dimension 时使用外部值，否则使用内部状态
+  const currentDimension = externalDimension || internalDimension;
 
   // 根据当前维度生成可选日期选项
-  const dateOptions = getDateOptionsByDimension(availableDates, dimension);
+  const dateOptions = getDateOptionsByDimension(availableDates, currentDimension);
 
   // 获取当前选中日期的显示标签
-  const currentDateLabel = date ? formatDateByDimension(date, dimension) : '';
+  const currentDateLabel = date ? formatDateByDimension(date, currentDimension) : '';
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
@@ -140,36 +149,43 @@ export function AIAnalysisPanel({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* 分析维度切换 */}
-            <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-              {[
-                { key: 'day' as const, label: '日' },
-                { key: 'week' as const, label: '周' },
-                { key: 'month' as const, label: '月' },
-              ].map((item) => (
-                <button
-                  key={item.key}
-                  onClick={() => setDimension(item.key)}
-                  className={cn(
-                    "px-3 py-1.5 text-xs font-medium rounded-md transition-all",
-                    dimension === item.key
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+            {/* 分析维度切换 - 仅在 showDimensionPicker 为 true 时显示 */}
+            {showDimensionPicker ? (
+              <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                {[
+                  { key: 'day' as const, label: '日' },
+                  { key: 'week' as const, label: '周' },
+                  { key: 'month' as const, label: '月' },
+                ].map((item) => (
+                  <button
+                    key={item.key}
+                    onClick={() => setInternalDimension(item.key)}
+                    className={cn(
+                      "px-3 py-1.5 text-xs font-medium rounded-md transition-all",
+                      currentDimension === item.key
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              // 固定维度时显示标签
+              <span className="px-3 py-1.5 text-xs font-medium rounded-lg bg-muted/50 text-muted-foreground">
+                {currentDimension === 'day' ? '日报' : currentDimension === 'week' ? '周报' : '月报'}
+              </span>
+            )}
 
             {showDatePicker ? (
               <Select value={date || ''} onValueChange={onDateChange}>
                 <SelectTrigger className={cn(
                   "h-8 text-xs font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20",
-                  dimension === 'day' ? "w-36" : dimension === 'week' ? "w-40" : "w-32"
+                  currentDimension === 'day' ? "w-36" : currentDimension === 'week' ? "w-40" : "w-32"
                 )}>
                   <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                  <span className="truncate">{currentDateLabel || (dimension === 'day' ? '选择日期' : dimension === 'week' ? '选择周' : '选择月份')}</span>
+                  <span className="truncate">{currentDateLabel || (currentDimension === 'day' ? '选择日期' : currentDimension === 'week' ? '选择周' : '选择月份')}</span>
                 </SelectTrigger>
                 <SelectContent>
                   {dateOptions.length > 0 ? (
@@ -185,7 +201,7 @@ export function AIAnalysisPanel({
               </Select>
             ) : (
               <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
-                {date ? currentDateLabel : 'GPT-4'}
+                {date ? currentDateLabel : (currentDimension === 'day' ? '日报' : currentDimension === 'week' ? '周报' : '月报')}
               </span>
             )}
           </div>
@@ -193,7 +209,7 @@ export function AIAnalysisPanel({
 
         {/* 更新说明 */}
         <p className="text-[10px] text-muted-foreground mt-2 pl-14">
-          {getDimensionUpdateInfo(dimension)}
+          {getDimensionUpdateInfo(currentDimension)}
         </p>
       </div>
 
