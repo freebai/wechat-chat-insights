@@ -235,6 +235,14 @@ export const mockMemberStats: MemberStats[] = [
   { name: '赵销售', messageCount: 621, memberType: 'enterprise_friend' },
   { name: '周客服', messageCount: 589, memberType: 'external_friend' },
   { name: '吴财务', messageCount: 456, memberType: 'employee' },
+  { name: '孙技术', messageCount: 345, memberType: 'employee' },
+  { name: '钱市场', messageCount: 234, memberType: 'enterprise_friend' },
+  { name: '郑法务', messageCount: 123, memberType: 'employee' },
+  { name: '冯行政', messageCount: 89, memberType: 'employee' },
+  { name: '杨采购', messageCount: 45, memberType: 'external_friend' },
+  { name: '朱人事', messageCount: 12, memberType: 'employee' },
+  { name: '许测试', messageCount: 0, memberType: 'employee' },
+  { name: '何实习', messageCount: 0, memberType: 'employee' },
 ];
 
 export const mockHourlyActivity: HourlyActivity[] = Array.from({ length: 24 }, (_, i) => ({
