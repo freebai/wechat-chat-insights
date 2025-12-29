@@ -33,6 +33,48 @@ const getDimensionUpdateInfo = (dimension: AnalysisDimension): string => {
   }
 };
 
+// 根据维度格式化日期显示
+const formatDateByDimension = (dateStr: string, dimension: AnalysisDimension): string => {
+  const date = new Date(dateStr);
+  switch (dimension) {
+    case 'week': {
+      // 获取该日期所在周的起始和结束日期
+      const dayOfWeek = date.getDay();
+      const monday = new Date(date);
+      monday.setDate(date.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      const formatShort = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`;
+      return `${formatShort(monday)} - ${formatShort(sunday)}`;
+    }
+    case 'month': {
+      return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+    }
+    default:
+      return dateStr;
+  }
+};
+
+// 根据维度生成可选日期列表（去重）
+const getDateOptionsByDimension = (dates: string[], dimension: AnalysisDimension): { value: string; label: string }[] => {
+  if (dimension === 'day') {
+    return dates.map(d => ({ value: d, label: d }));
+  }
+
+  const seen = new Set<string>();
+  const options: { value: string; label: string }[] = [];
+
+  for (const d of dates) {
+    const label = formatDateByDimension(d, dimension);
+    if (!seen.has(label)) {
+      seen.add(label);
+      options.push({ value: d, label });
+    }
+  }
+
+  return options;
+};
+
 export function AIAnalysisPanel({
   insight,
   date,
@@ -43,6 +85,13 @@ export function AIAnalysisPanel({
   emptyReason = 'no_data'
 }: AIAnalysisPanelProps) {
   const [dimension, setDimension] = useState<AnalysisDimension>('day');
+
+  // 根据当前维度生成可选日期选项
+  const dateOptions = getDateOptionsByDimension(availableDates, dimension);
+
+  // 获取当前选中日期的显示标签
+  const currentDateLabel = date ? formatDateByDimension(date, dimension) : '';
+
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'positive': return 'text-emerald-600';
@@ -89,7 +138,7 @@ export function AIAnalysisPanel({
               <p className="text-xs text-muted-foreground mt-0.5">基于对话内容的深度分析</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {/* 分析维度切换 */}
             <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
@@ -112,18 +161,21 @@ export function AIAnalysisPanel({
                 </button>
               ))}
             </div>
-            
+
             {showDatePicker ? (
               <Select value={date || ''} onValueChange={onDateChange}>
-                <SelectTrigger className="w-36 h-8 text-xs font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+                <SelectTrigger className={cn(
+                  "h-8 text-xs font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20",
+                  dimension === 'day' ? "w-36" : dimension === 'week' ? "w-40" : "w-32"
+                )}>
                   <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                  <SelectValue placeholder="选择日期" />
+                  <span className="truncate">{currentDateLabel || (dimension === 'day' ? '选择日期' : dimension === 'week' ? '选择周' : '选择月份')}</span>
                 </SelectTrigger>
                 <SelectContent>
-                  {availableDates.length > 0 ? (
-                    availableDates.map((d) => (
-                      <SelectItem key={d} value={d} className="text-xs">
-                        {d}
+                  {dateOptions.length > 0 ? (
+                    dateOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-xs">
+                        {option.label}
                       </SelectItem>
                     ))
                   ) : (
@@ -133,12 +185,12 @@ export function AIAnalysisPanel({
               </Select>
             ) : (
               <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
-                {date ? `${date}` : 'GPT-4'}
+                {date ? currentDateLabel : 'GPT-4'}
               </span>
             )}
           </div>
         </div>
-        
+
         {/* 更新说明 */}
         <p className="text-[10px] text-muted-foreground mt-2 pl-14">
           {getDimensionUpdateInfo(dimension)}

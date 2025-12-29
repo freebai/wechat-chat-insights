@@ -116,30 +116,20 @@ export default function GroupDetail() {
     });
   }, [reports, dateRange, fromReports, reportId]);
 
-  // 从群聊分析进入时，用于追踪选中的AI分析日期
-  const [selectedAnalysisDate, setSelectedAnalysisDate] = useState<string | null>(null);
-
-  // 获取日期范围内可用的AI分析日期列表（排序：最新在前）
+  // 获取所有可用的AI分析日期列表（排序：最新在前）
+  // 注意：此列表独立于页面顶层的日期选择器，不受其过滤影响
   const availableAnalysisDates = useMemo(() => {
-    return filteredReports.map(r => r.date).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-  }, [filteredReports]);
+    return reports.map(r => r.date).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  }, [reports]);
 
-  // 当筛选条件变化时，重置选中日期为昨日
-  useEffect(() => {
-    if (!fromReports && availableAnalysisDates.length > 0) {
-      // 获取昨日日期字符串
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-      // 如果昨日在可用日期中，选择昨日；否则设为 null（展示空状态）
-      if (availableAnalysisDates.includes(yesterdayStr)) {
-        setSelectedAnalysisDate(yesterdayStr);
-      } else {
-        setSelectedAnalysisDate(null);
-      }
-    }
-  }, [fromReports, availableAnalysisDates]);
+  // 从群聊分析进入时，用于追踪选中的AI分析日期
+  // 首次进入时默认设为昨天
+  const [selectedAnalysisDate, setSelectedAnalysisDate] = useState<string | null>(() => {
+    if (fromReports) return null;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday.toISOString().split('T')[0];
+  });
 
 
   // 获取当前展示的报告
@@ -159,15 +149,16 @@ export default function GroupDetail() {
   }, [reportId, reports, filteredReports, fromReports, selectedAnalysisDate]);
 
   // 用于AI分析的报告（只有选择日期时才有）
+  // 注意：从群聊分析进入时，从所有报告中查找，不受顶层日期选择器影响
   const aiAnalysisReport = useMemo(() => {
     if (fromReports && reportId) {
       return reports.find(r => r.id === reportId);
     }
     if (!fromReports && selectedAnalysisDate) {
-      return filteredReports.find(r => r.date === selectedAnalysisDate);
+      return reports.find(r => r.date === selectedAnalysisDate);
     }
     return undefined;
-  }, [fromReports, reportId, selectedAnalysisDate, reports, filteredReports]);
+  }, [fromReports, reportId, selectedAnalysisDate, reports]);
 
   if (!group) {
     return (
@@ -514,7 +505,7 @@ export default function GroupDetail() {
       {/* Member Ranking + Message Type */}
       {currentReport && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MemberRanking members={currentReport.memberStats} />
+          <MemberRanking members={currentReport.memberStats} groupId={id} />
           <MessageTypeChart data={currentReport.messageTypes} />
         </div>
       )}

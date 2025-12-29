@@ -12,6 +12,7 @@ import RulesSettings from "./pages/RulesSettings";
 import ArchivingStats from "./pages/ArchivingStats";
 import CustomerConsentDetails from "./pages/CustomerConsentDetails";
 import GroupConsentDetails from "./pages/GroupConsentDetails";
+import MemberRankingDetails from "./pages/MemberRankingDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/archiving/customer-details" element={<CustomerConsentDetails />} />
             <Route path="/archiving/group-details" element={<GroupConsentDetails />} />
             <Route path="/settings/rules" element={<RulesSettings />} />
+            <Route path="/members/ranking" element={<MemberRankingDetails />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
