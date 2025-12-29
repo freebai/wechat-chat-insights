@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { AIInsight } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import { Sparkles, AlertCircle, CheckCircle2, Brain, Calendar, FileQuestion } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+type AnalysisDimension = 'day' | 'week' | 'month';
 
 interface AIAnalysisPanelProps {
   insight?: AIInsight;
@@ -18,6 +21,18 @@ interface AIAnalysisPanelProps {
   emptyReason?: 'excluded' | 'insufficient' | 'no_data';
 }
 
+// 获取维度的更新说明
+const getDimensionUpdateInfo = (dimension: AnalysisDimension): string => {
+  switch (dimension) {
+    case 'week':
+      return '每周一更新上周数据';
+    case 'month':
+      return '每月初一更新上月数据';
+    default:
+      return '每日更新昨日数据';
+  }
+};
+
 export function AIAnalysisPanel({
   insight,
   date,
@@ -27,6 +42,7 @@ export function AIAnalysisPanel({
   isEmpty = false,
   emptyReason = 'no_data'
 }: AIAnalysisPanelProps) {
+  const [dimension, setDimension] = useState<AnalysisDimension>('day');
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'positive': return 'text-emerald-600';
@@ -63,7 +79,7 @@ export function AIAnalysisPanel({
     <div className="bg-card rounded-xl border border-border shadow-sm animate-fade-up overflow-hidden" style={{ animationDelay: '400ms' }}>
       {/* Header with gradient */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-6 py-4 border-b border-border">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-primary/10 ring-4 ring-primary/5">
               <Brain className="h-5 w-5 text-primary" />
@@ -73,30 +89,60 @@ export function AIAnalysisPanel({
               <p className="text-xs text-muted-foreground mt-0.5">基于对话内容的深度分析</p>
             </div>
           </div>
-          {showDatePicker ? (
-            <Select value={date || ''} onValueChange={onDateChange}>
-              <SelectTrigger className="w-36 h-8 text-xs font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                <SelectValue placeholder="选择日期" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableDates.length > 0 ? (
-                  availableDates.map((d) => (
-                    <SelectItem key={d} value={d} className="text-xs">
-                      {d}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <div className="px-2 py-1.5 text-xs text-muted-foreground">暂无可选日期</div>
-                )}
-              </SelectContent>
-            </Select>
-          ) : (
-            <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
-              {date ? `${date}` : 'GPT-4'}
-            </span>
-          )}
+          
+          <div className="flex items-center gap-3">
+            {/* 分析维度切换 */}
+            <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+              {[
+                { key: 'day' as const, label: '日' },
+                { key: 'week' as const, label: '周' },
+                { key: 'month' as const, label: '月' },
+              ].map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => setDimension(item.key)}
+                  className={cn(
+                    "px-3 py-1.5 text-xs font-medium rounded-md transition-all",
+                    dimension === item.key
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            
+            {showDatePicker ? (
+              <Select value={date || ''} onValueChange={onDateChange}>
+                <SelectTrigger className="w-36 h-8 text-xs font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+                  <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                  <SelectValue placeholder="选择日期" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableDates.length > 0 ? (
+                    availableDates.map((d) => (
+                      <SelectItem key={d} value={d} className="text-xs">
+                        {d}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">暂无可选日期</div>
+                  )}
+                </SelectContent>
+              </Select>
+            ) : (
+              <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
+                {date ? `${date}` : 'GPT-4'}
+              </span>
+            )}
+          </div>
         </div>
+        
+        {/* 更新说明 */}
+        <p className="text-[10px] text-muted-foreground mt-2 pl-14">
+          {getDimensionUpdateInfo(dimension)}
+        </p>
       </div>
 
       {/* 空状态展示 */}
