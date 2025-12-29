@@ -13,11 +13,39 @@ import { mockChatGroups, generateMockReports } from '@/lib/mockData';
 import { DateRangeFilter, DateRange } from '@/components/common/DateRangeFilter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 10;
 
+type AnalysisDimension = 'day' | 'week' | 'month';
+
+// 获取维度的更新说明
+const getDimensionUpdateInfo = (dimension: AnalysisDimension): string => {
+  switch (dimension) {
+    case 'week':
+      return '每周一更新上周数据';
+    case 'month':
+      return '每月初一更新上月数据';
+    default:
+      return '每日更新昨日数据';
+  }
+};
+
+// 获取维度对应的日期列标题
+const getDimensionDateLabel = (dimension: AnalysisDimension): string => {
+  switch (dimension) {
+    case 'week':
+      return '周期';
+    case 'month':
+      return '月份';
+    default:
+      return '日期';
+  }
+};
+
 export default function Reports() {
   const [selectedGroup, setSelectedGroup] = useState<string>('all');
+  const [dimension, setDimension] = useState<AnalysisDimension>('day');
   const [dateRange, setDateRange] = useState<DateRange>(() => {
     const to = new Date();
     const from = new Date();
@@ -35,16 +63,88 @@ export default function Reports() {
     );
   }, []);
 
+  // 根据维度处理报告数据
+  const processedReports = useMemo(() => {
+    if (dimension === 'day') {
+      return allReports;
+    }
+
+    // 按周或月聚合报告
+    const groupedReports = new Map<string, { reports: typeof allReports; periodLabel: string }>();
+
+    allReports.forEach(report => {
+      const date = new Date(report.date);
+      let periodKey: string;
+      let periodLabel: string;
+
+      if (dimension === 'week') {
+        // 获取该日期所在周的周一
+        const dayOfWeek = date.getDay();
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const monday = new Date(date);
+        monday.setDate(date.getDate() + mondayOffset);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        periodKey = `${report.groupId}-${monday.toISOString().split('T')[0]}`;
+        periodLabel = `${monday.getMonth() + 1}/${monday.getDate()} - ${sunday.getMonth() + 1}/${sunday.getDate()}`;
+      } else {
+        // 月份
+        periodKey = `${report.groupId}-${date.getFullYear()}-${date.getMonth() + 1}`;
+        periodLabel = `${date.getFullYear()}年${date.getMonth() + 1}月`;
+      }
+
+      if (!groupedReports.has(periodKey)) {
+        groupedReports.set(periodKey, { reports: [], periodLabel });
+      }
+      groupedReports.get(periodKey)!.reports.push(report);
+    });
+
+    // 聚合每个周期的数据
+    return Array.from(groupedReports.entries()).map(([key, { reports, periodLabel }]) => {
+      const totalMessages = reports.reduce((sum, r) => sum + r.messageCount, 0);
+      const avgSpeakers = Math.round(reports.reduce((sum, r) => sum + r.baseMetrics.activeSpeakers, 0) / reports.length);
+      const latestReport = reports.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+      
+      return {
+        ...latestReport,
+        id: key,
+        date: periodLabel,
+        messageCount: totalMessages,
+        baseMetrics: {
+          ...latestReport.baseMetrics,
+          activeSpeakers: avgSpeakers,
+        },
+        aiInsight: {
+          ...latestReport.aiInsight,
+          summary: dimension === 'week' 
+            ? `本周群聊分析：共${reports.length}天有效数据，总消息${totalMessages}条，${latestReport.aiInsight.summary.split('，').slice(1).join('，')}`
+            : `本月群聊分析：共${reports.length}天有效数据，总消息${totalMessages}条，${latestReport.aiInsight.summary.split('，').slice(1).join('，')}`,
+        },
+      };
+    });
+  }, [allReports, dimension]);
+
   const filteredReports = useMemo(() => {
-    return allReports
+    return processedReports
       .filter(report => {
-        const reportDate = new Date(report.date);
-        const dateMatch = reportDate >= dateRange.from && reportDate <= dateRange.to;
+        // 对于周/月维度，日期筛选逻辑需要调整
+        if (dimension === 'day') {
+          const reportDate = new Date(report.date);
+          const dateMatch = reportDate >= dateRange.from && reportDate <= dateRange.to;
+          const groupMatch = selectedGroup === 'all' || report.groupId === selectedGroup;
+          return dateMatch && groupMatch;
+        }
+        // 周/月维度暂时只按群筛选
         const groupMatch = selectedGroup === 'all' || report.groupId === selectedGroup;
-        return dateMatch && groupMatch;
+        return groupMatch;
       })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [allReports, dateRange, selectedGroup]);
+      .sort((a, b) => {
+        // 对于周/月维度，按原始日期排序
+        const dateA = dimension === 'day' ? new Date(a.date) : new Date((a as any).date.includes('年') ? a.date.replace('年', '-').replace('月', '') : a.date);
+        const dateB = dimension === 'day' ? new Date(b.date) : new Date((b as any).date.includes('年') ? b.date.replace('年', '-').replace('月', '') : b.date);
+        return dateB.getTime() - dateA.getTime();
+      });
+  }, [processedReports, dateRange, selectedGroup, dimension]);
 
   // 分页逻辑
   const totalPages = Math.ceil(filteredReports.length / PAGE_SIZE);
@@ -61,6 +161,11 @@ export default function Reports() {
 
   const handleDateRangeChange = (value: DateRange) => {
     setDateRange(value);
+    setCurrentPage(1);
+  };
+
+  const handleDimensionChange = (value: AnalysisDimension) => {
+    setDimension(value);
     setCurrentPage(1);
   };
 
@@ -94,21 +199,24 @@ export default function Reports() {
                     <section>
                       <h3 className="font-semibold text-base mb-2 text-foreground">📋 页面概述</h3>
                       <p className="text-muted-foreground leading-relaxed">
-                        本页面记录了系统对各群聊产生的每日深度分析报告。用户可以追溯历史记录并查看具体的 AI 总结和活跃指标。
+                        本页面记录了系统对各群聊产生的 AI 智能分析报告，支持按自然日、自然周、自然月三种维度查看。
                       </p>
                     </section>
                     <section>
                       <h3 className="font-semibold text-base mb-2 text-foreground">⏱️ 报告生成机制</h3>
                       <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                        <li><strong>定时生成</strong>：系统通常在每日凌晨对前一日的聊天数据进行汇总和 AI 分析。</li>
-                        <li><strong>准入阈值</strong>：为了保证分析质量，消息量过少（如每日少于 10 条）或成员数过少的群聊可能不会产生当日分析报告。</li>
+                        <li><strong>日报</strong>：每日凌晨对前一日的聊天数据进行汇总和 AI 分析。</li>
+                        <li><strong>周报</strong>：每周一更新上周（周一至周日）的汇总分析。</li>
+                        <li><strong>月报</strong>：每月初一更新上月的汇总分析。</li>
+                        <li><strong>准入阈值</strong>：消息量过少或成员数过少的群聊可能不会产生分析报告。</li>
                       </ul>
                     </section>
                     <section>
                       <h3 className="font-semibold text-base mb-2 text-foreground">🔍 检索逻辑</h3>
                       <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                        <li><strong>日期筛选</strong>：支持查看特定时间段内的所有报告。</li>
-                        <li><strong>群聊联动</strong>：从本页面点击“查看详情”进入群聊详情时，将锁定查看该日期的特定报告。</li>
+                        <li><strong>维度切换</strong>：支持在日/周/月三种分析维度间切换查看。</li>
+                        <li><strong>日期筛选</strong>：支持查看特定时间段内的所有报告（日维度）。</li>
+                        <li><strong>群聊联动</strong>：从本页面点击"查看详情"进入群聊详情时，将锁定查看该日期的特定报告。</li>
                       </ul>
                     </section>
                   </div>
@@ -121,19 +229,50 @@ export default function Reports() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-4 mb-6">
-        <Select value={selectedGroup} onValueChange={handleGroupChange}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="选择群聊" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部群聊</SelectItem>
-            {mockChatGroups.map(group => (
-              <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
+      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+        <div className="flex items-center gap-4">
+          {/* 维度切换 */}
+          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+            {[
+              { key: 'day' as const, label: '日' },
+              { key: 'week' as const, label: '周' },
+              { key: 'month' as const, label: '月' },
+            ].map((item) => (
+              <button
+                key={item.key}
+                onClick={() => handleDimensionChange(item.key)}
+                className={cn(
+                  "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
+                  dimension === item.key
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
+              >
+                {item.label}
+              </button>
             ))}
-          </SelectContent>
-        </Select>
-        <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
+          </div>
+          
+          <Select value={selectedGroup} onValueChange={handleGroupChange}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="选择群聊" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部群聊</SelectItem>
+              {mockChatGroups.map(group => (
+                <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          {dimension === 'day' && (
+            <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
+          )}
+        </div>
+        
+        <span className="text-xs text-muted-foreground">
+          {getDimensionUpdateInfo(dimension)}
+        </span>
       </div>
 
       {/* Reports List */}
@@ -141,10 +280,14 @@ export default function Reports() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">日期</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">{getDimensionDateLabel(dimension)}</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">群聊</th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">消息数</th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">发言人数</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">
+                {dimension === 'day' ? '消息数' : '总消息数'}
+              </th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">
+                {dimension === 'day' ? '发言人数' : '平均发言人数'}
+              </th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">摘要</th>
               <th className="text-right py-4 px-6 text-sm font-medium text-muted-foreground">操作</th>
             </tr>
