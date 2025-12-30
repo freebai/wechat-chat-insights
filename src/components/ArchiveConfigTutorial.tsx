@@ -2,6 +2,7 @@ import React from 'react';
 import ipConfigImg from '@/assets/tutorial/ip-config.png';
 import keyGenerationImg from '@/assets/tutorial/key-generation.png';
 import copyPrivateKeyImg from '@/assets/tutorial/copy-private-key.png';
+import copyPrivateKeyExampleImg from '@/assets/tutorial/copy-private-key - 副本.png';
 import savePubKeyImg from '@/assets/tutorial/save-pub-key.png';
 import adminPanelImg from '@/assets/tutorial/admin-panel.png';
 import versionNumberImg from '@/assets/tutorial/version-number.png';
@@ -58,7 +59,7 @@ export function ArchiveConfigTutorial() {
                             </ul>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div className="space-y-4 mt-2">
                             <div className="border rounded-lg overflow-hidden">
                                 <img
                                     src={keyGenerationImg}
@@ -119,19 +120,19 @@ export function ArchiveConfigTutorial() {
 
                         <div className="space-y-1">
                             <span className="font-medium text-foreground">会话密钥：</span>
-                            <span className="text-muted-foreground">企业微信PC端 &gt; 管理工具 &gt; 会话存档 &gt; 会话Secret</span>
+                            <span className="text-muted-foreground">企业微信PC端 &gt; 安全与管理 &gt; 管理工具 &gt; 会话内容存档 &gt; Secret</span>
                         </div>
 
                         <div className="space-y-1">
                             <span className="font-medium text-foreground">私钥：</span>
                             <p className="text-muted-foreground">
-                                使用第一步生成的 <code className="text-foreground">pri.key</code> 私钥内容。
+                                企业微信后台配置第四步生成保存的私钥 <code className="text-foreground">pri.key</code>
                                 <br />
-                                <span className="text-orange-600 text-xs">注意点：在复制私钥时，只需要复制中间内容，不需要前后缀。</span>
+                                <span className="text-orange-600 text-xs">注意点：在复制 pri.key 私钥时，只需要复制中间内容，不需要前后缀，如下图所示</span>
                             </p>
                             <div className="mt-2 border rounded-lg overflow-hidden w-2/3">
                                 <img
-                                    src={copyPrivateKeyImg}
+                                    src={copyPrivateKeyExampleImg}
                                     alt="私钥复制示例"
                                     className="w-full h-auto"
                                 />
