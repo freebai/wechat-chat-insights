@@ -77,12 +77,12 @@ export function MemberRanking({ members, allMembers, groupId }: MemberRankingPro
           </div>
 
           {/* 详情入口 - 导航到独立页面 */}
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground hover:text-primary" asChild>
+          {/* <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground hover:text-primary" asChild>
             <Link to={detailUrl}>
               <ExternalLink className="h-3.5 w-3.5 mr-1" />
               详情
             </Link>
-          </Button>
+          </Button> */}
         </div>
       </div>
 
